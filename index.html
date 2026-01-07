@@ -1,0 +1,2220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CashCheck — Пространство для денежных переводов</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* CSS переменные для темной/светлой темы */
+        :root {
+            /* Светлая тема по умолчанию */
+            --tg-bg-color: #FFFFFF;
+            --tg-secondary-bg-color: #F8FAFC;
+            --tg-text-color: #1E293B;
+            --tg-secondary-text-color: #475569;
+            --tg-hint-color: #94A3B8;
+            --tg-link-color: #2D5BFF;
+            --tg-button-color: #2D5BFF;
+            --tg-button-text-color: #FFFFFF;
+            --tg-border-color: #E2E8F0;
+            --tg-card-bg: #FFFFFF;
+            --tg-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --tg-input-bg: #FFFFFF;
+            
+            /* Брендовые цвета (не меняются) */
+            --primary-blue: #2D5BFF;
+            --primary-purple: #7B61FF;
+            --success-color: #10B981;
+            --error-color: #EF4444;
+            --warning-color: #F59E0B;
+            --info-color: #3B82F6;
+            --radius-lg: 20px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+        }
+        
+        /* Темная тема */
+        .theme-dark {
+            --tg-bg-color: #0F172A;
+            --tg-secondary-bg-color: #1E293B;
+            --tg-text-color: #F1F5F9;
+            --tg-secondary-text-color: #CBD5E1;
+            --tg-hint-color: #64748B;
+            --tg-link-color: #60A5FA;
+            --tg-button-color: #3B82F6;
+            --tg-button-text-color: #FFFFFF;
+            --tg-border-color: #334155;
+            --tg-card-bg: #1E293B;
+            --tg-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --tg-input-bg: #334155;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--tg-bg-color);
+            color: var(--tg-text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 16px;
+            margin: 0 auto;
+        }
+        
+        /* Шапка */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--tg-border-color);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--tg-text-color);
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .balance {
+            background: var(--tg-card-bg);
+            border: 1px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--tg-text-color);
+            box-shadow: var(--tg-shadow);
+        }
+        
+        /* Основной контент */
+        .main-content {
+            padding-bottom: 20px;
+        }
+        
+        .section {
+            background: var(--tg-card-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--tg-border-color);
+            box-shadow: var(--tg-shadow);
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--tg-text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: var(--tg-link-color);
+            font-size: 22px;
+        }
+        
+        /* Табы */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--tg-secondary-bg-color);
+            padding: 6px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tab {
+            flex: 0 0 auto;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--tg-secondary-text-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-align: center;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        
+        .tab.active {
+            background: var(--tg-card-bg);
+            color: var(--tg-link-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Переключатель методов вывода */
+        .method-switcher {
+            display: flex;
+            gap: 8px;
+            background: var(--tg-secondary-bg-color);
+            padding: 6px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+        }
+        
+        .method-switch {
+            flex: 1;
+            padding: 14px 16px;
+            border: none;
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--tg-secondary-text-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .method-switch.active {
+            background: var(--tg-card-bg);
+            color: var(--tg-link-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Формы */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--tg-text-color);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            background: var(--tg-input-bg);
+            border: 2px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: var(--tg-text-color);
+            transition: all 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--tg-link-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        
+        .form-hint {
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--tg-hint-color);
+        }
+        
+        /* Кнопки */
+        .btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(45, 91, 255, 0.25);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: var(--tg-secondary-bg-color);
+            color: var(--tg-text-color);
+            border: 1px solid var(--tg-border-color);
+        }
+        
+        /* История операций */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .history-item {
+            background: var(--tg-card-bg);
+            border: 1px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .history-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .history-info {
+            flex: 1;
+        }
+        
+        .history-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--tg-text-color);
+            margin-bottom: 4px;
+        }
+        
+        .history-subtitle {
+            font-size: 14px;
+            color: var(--tg-secondary-text-color);
+        }
+        
+        .history-amount {
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .history-amount.positive {
+            color: var(--success-color);
+        }
+        
+        .history-amount.negative {
+            color: var(--error-color);
+        }
+        
+        .history-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        
+        .status-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success-color);
+        }
+        
+        .status-pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning-color);
+        }
+        
+        .status-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error-color);
+        }
+        
+        /* Банки */
+        .bank-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .bank-option {
+            background: var(--tg-card-bg);
+            border: 2px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            padding: 16px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .bank-option.active {
+            border-color: var(--tg-link-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .bank-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: white;
+        }
+        
+        .bank-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--tg-text-color);
+            text-align: center;
+        }
+        
+        /* Новости */
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .news-item {
+            background: var(--tg-card-bg);
+            border: 1px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            transition: transform 0.2s ease;
+        }
+        
+        .news-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .news-date {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--tg-link-color);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .news-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--tg-text-color);
+        }
+        
+        .news-content {
+            font-size: 15px;
+            color: var(--tg-secondary-text-color);
+            line-height: 1.6;
+        }
+        
+        .news-highlight {
+            border-left: 4px solid var(--success-color);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .news-warning {
+            border-left: 4px solid var(--warning-color);
+            background: rgba(245, 158, 11, 0.05);
+        }
+        
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            background: var(--tg-card-bg);
+            border: 1px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 90%;
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .notification-icon {
+            font-size: 24px;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .notification-text {
+            font-size: 14px;
+            color: var(--tg-secondary-text-color);
+        }
+        
+        /* Модальное окно */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: var(--tg-card-bg);
+            border-radius: var(--radius-lg);
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .document-content {
+            color: var(--tg-text-color);
+            line-height: 1.6;
+        }
+        
+        .document-content h3 {
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .document-content p {
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+        
+        .document-content ul {
+            margin: 12px 0 16px 20px;
+        }
+        
+        .document-content li {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        
+        /* Футер */
+        .footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--tg-border-color);
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: var(--tg-link-color);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .footer-text {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--tg-hint-color);
+        }
+        
+        /* Стили для предупреждений */
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .warning-box i {
+            color: var(--warning-color);
+            font-size: 20px;
+            margin-top: 2px;
+        }
+        
+        .warning-content h4 {
+            color: var(--warning-color);
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+        
+        .warning-content p {
+            color: var(--tg-text-color);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* Стили для информации */
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--info-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .info-box i {
+            color: var(--info-color);
+            font-size: 20px;
+            margin-top: 2px;
+        }
+        
+        .info-content h4 {
+            color: var(--info-color);
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+        
+        .info-content p {
+            color: var(--tg-text-color);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* Методы оплаты */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-method {
+            background: var(--tg-card-bg);
+            border: 2px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .payment-method.active {
+            border-color: var(--tg-link-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .payment-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .payment-icon.card {
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+        }
+        
+        .payment-icon.yoomoney {
+            background: linear-gradient(135deg, #2D5BFF 0%, #7B61FF 100%);
+        }
+        
+        .payment-info {
+            flex: 1;
+        }
+        
+        .payment-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--tg-text-color);
+            margin-bottom: 4px;
+        }
+        
+        .payment-description {
+            font-size: 14px;
+            color: var(--tg-secondary-text-color);
+        }
+        
+        /* Блоки для разных методов вывода */
+        .withdraw-method-block {
+            display: none;
+        }
+        
+        .withdraw-method-block.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+            
+            .section {
+                padding: 16px;
+            }
+            
+            .tab {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            
+            .bank-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .modal-body {
+                padding: 16px;
+            }
+            
+            .method-switch {
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        /* Скрытые элементы */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Специальные классы для текста */
+        .text-muted {
+            color: var(--tg-secondary-text-color) !important;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        /* Заглушка для пустой истории */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            color: var(--tg-hint-color);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            color: var(--tg-secondary-text-color);
+            font-size: 16px;
+        }
+        
+        /* Утилиты отступов */
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mb-4 { margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно с документами -->
+    <div id="agreementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Документы</div>
+                <button class="modal-close" onclick="closeModal('agreementModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="agreement-content" class="document-content">
+                    <h3>Пользовательское соглашение</h3>
+                    <p><strong>Дата вступления в силу:</strong> 1 января 2026 года</p>
+                    
+                    <h4>1. Общие положения</h4>
+                    <p>1.1. Настоящее Пользовательское соглашение регулирует отношения между сервисом CashCheck и пользователем по использованию Сервиса.</p>
+                    <p>1.2. Используя Сервис, вы подтверждаете свое согласие с условиями настоящего Соглашения.</p>
+                    
+                    <h4>2. Описание Сервиса</h4>
+                    <p>CashCheck - это онлайн-сервис для создания и обналичивания денежных чеков, а также для осуществления денежных переводов между пользователями.</p>
+                    
+                    <h4>3. Регистрация и учетная запись</h4>
+                    <p>3.1. Для использования полного функционала Сервиса необходимо зарегистрироваться.</p>
+                    <p>3.2. Пользователь обязуется предоставлять точную информацию и не передавать свои учетные данные третьим лицам.</p>
+                    
+                    <h4>4. Правила использования</h4>
+                    <p>4.1. Пользователь соглашается использовать Сервис только в законных целях.</p>
+                    <p>4.2. Запрещается использовать Сервис для незаконных операций.</p>
+                    
+                    <h4>5. Финансовые операции</h4>
+                    <p>5.1. Все операции осуществляются в соответствии с законодательством.</p>
+                    <p>5.2. Комиссия за вывод средств: 1.5% от суммы.</p>
+                    <p>5.3. Минимальная сумма чека: 10 ₽, максимальная: 100 000 ₽.</p>
+                    <p>5.4. Минимальная сумма вывода: 100 ₽.</p>
+                    <p>5.5. Срок обработки заявок: 1-7 рабочих дней.</p>
+                    
+                    <h4>6. Безопасность и конфиденциальность</h4>
+                    <p>6.1. Сервис использует современные технологии шифрования для защиты данных.</p>
+                    <p>6.2. Сервис не передает персональные данные третьим лицам без согласия пользователя.</p>
+                    
+                    <h4>7. Ограничение ответственности</h4>
+                    <p>7.1. Сервис предоставляется "как есть". Администрация не гарантирует бесперебойную работу и не несет ответственность за денежный ущерб во время использования сервиса.</p>
+                    
+                    <h4>8. Изменения в Соглашении</h4>
+                    <p>8.1. Администрация оставляет за собой право вносить изменения в Соглашение.</p>
+                    
+                    <h4>9. Контакты</h4>
+                    <p>По всем вопросам обращайтесь: cashcheckru@mail.ru</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
+        <div class="notification-icon" id="notification-icon">💸</div>
+        <div class="notification-content">
+            <div class="notification-title" id="notification-title">Уведомление</div>
+            <p class="notification-text" id="notification-text">Текст уведомления</p>
+        </div>
+    </div>
+    
+    <!-- Основной интерфейс -->
+    <div class="container">
+        <!-- Шапка -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">C$</div>
+                <span>CashCheck</span>
+            </div>
+            <div class="user-info">
+                <div class="balance" id="balance">0 ₽</div>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="main-content">
+            <!-- Табы навигации -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('checkout')">Обналичить</button>
+                <button class="tab" onclick="showTab('create')">Создать</button>
+                <button class="tab" onclick="showTab('topup')">Пополнить</button>
+                <button class="tab" onclick="showTab('withdraw')">Вывод</button>
+                <button class="tab" onclick="showTab('history')">История</button>
+                <button class="tab" onclick="showTab('news')">Новости</button>
+            </div>
+            
+            <!-- Обналичивание чека -->
+            <div id="checkout-tab" class="section fade-in">
+                <div class="section-title">
+                    <i class="fas fa-money-check-alt"></i>
+                    <span>Обналичить чек</span>
+                </div>
+                
+                <form id="checkout-form">
+                    <div class="form-group">
+                        <label class="form-label">Код чека</label>
+                        <input type="text" class="form-input" id="check-code" placeholder="Введите 10-значный код" maxlength="10" required>
+                        <span class="form-hint">Пример: X8F7G2H9K5</span>
+                    </div>
+                    <button type="submit" class="btn">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Обналичить чек
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Создание чека -->
+            <div id="create-tab" class="section fade-in hidden">
+                <div class="section-title">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Создать чек</span>
+                </div>
+                
+                <form id="create-form">
+                    <div class="form-group">
+                        <label class="form-label">Сумма чека</label>
+                        <input type="number" class="form-input" id="check-amount" placeholder="Например: 1000" min="10" max="100000" required>
+                        <span class="form-hint">Минимальная сумма: 10 ₽, максимальная: 100 000 ₽</span>
+                    </div>
+                    <button type="submit" class="btn">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        Создать чек
+                    </button>
+                </form>
+                
+                <!-- Результат создания чека -->
+                <div id="check-result" class="section mt-4 hidden">
+                    <div class="section-title">
+                        <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                        <span>Чек создан</span>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size: 14px; color: var(--tg-secondary-text-color); margin-bottom: 12px;">
+                            Передайте этот код получателю:
+                        </div>
+                        <div style="background: var(--tg-secondary-bg-color); padding: 20px; border-radius: var(--radius-md); font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: 2px; margin-bottom: 16px;">
+                            <span id="new-check-code">A1B2C3D4E5</span>
+                        </div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">
+                            Сумма: <span id="check-amount-display" style="color: var(--tg-link-color);">1000 ₽</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="copyCheckCode()">
+                            <i class="fas fa-copy"></i>
+                            Скопировать код
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Пополнение баланса -->
+            <div id="topup-tab" class="section fade-in hidden">
+                <div class="section-title">
+                    <i class="fas fa-wallet"></i>
+                    <span>Пополнение баланса</span>
+                </div>
+                
+                <!-- Предупреждение о временных ограничениях -->
+                <div class="warning-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="warning-content">
+                        <h4>Внимание! Временные ограничения</h4>
+                        <p>Пополнение баланса через банковские карты и ЮMoney временно недоступно. Пожалуйста, попробуйте позже.</p>
+                    </div>
+                </div>
+                
+                <!-- Информация о пополнении через поддержку -->
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <div class="info-content">
+                        <h4>Пополнение через поддержку</h4>
+                        <p>Вы можете пополнить баланс, связавшись с нашей поддержкой по адресу: cashcheckru@mail.ru</p>
+                    </div>
+                </div>
+                
+                <!-- Выбор метода оплаты -->
+                <div class="form-group">
+                    <label class="form-label">Способ оплаты</label>
+                    <div class="payment-methods">
+                        <div class="payment-method" onclick="selectPaymentMethod('card')">
+                            <div class="payment-icon card">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="payment-info">
+                                <div class="payment-name">Банковская карта</div>
+                                <div class="payment-description">Visa, Mastercard, МИР</div>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-method" onclick="selectPaymentMethod('yoomoney')">
+                            <div class="payment-icon yoomoney">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="payment-info">
+                                <div class="payment-name">ЮMoney</div>
+                                <div class="payment-description">Кошелек ЮMoney</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Форма пополнения -->
+                <form id="topup-form">
+                    <div class="form-group">
+                        <label class="form-label">Сумма пополнения</label>
+                        <input type="number" class="form-input" id="topup-amount" placeholder="Например: 5000" min="10" max="100000" disabled>
+                        <span class="form-hint">Минимальная сумма: 10 ₽, максимальная: 100 000 ₽</span>
+                    </div>
+                    
+                    <button type="submit" class="btn" disabled>
+                        <i class="fas fa-credit-card"></i>
+                        Пополнение временно недоступно
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Вывод средств -->
+            <div id="withdraw-tab" class="section fade-in hidden">
+                <div class="section-title">
+                    <i class="fas fa-money-bill-transfer"></i>
+                    <span>Вывод средств</span>
+                </div>
+                
+                <!-- Комиссия -->
+                <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning-color); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                    <div style="font-weight: 600; color: var(--warning-color);">Комиссия за вывод: 1.5%</div>
+                    <div style="font-size: 14px; color: var(--tg-secondary-text-color); margin-top: 4px;">
+                        <div>Срок зачисления:</div>
+                        <div>• На карту: 1-7 рабочих дней</div>
+                        <div>• На ЮMoney: 1-3 рабочих дня</div>
+                    </div>
+                </div>
+                
+                <!-- Переключатель метода вывода -->
+                <div class="method-switcher">
+                    <button class="method-switch active" onclick="selectWithdrawMethod('card')">На карту</button>
+                    <button class="method-switch" onclick="selectWithdrawMethod('yoomoney')">На ЮMoney</button>
+                </div>
+                
+                <!-- Блок для вывода на карту -->
+                <div id="card-withdraw-block" class="withdraw-method-block active">
+                    <!-- Выбор банка -->
+                    <div class="form-group">
+                        <label class="form-label">Выберите банк</label>
+                        <div class="bank-grid" id="bank-grid">
+                            <!-- Банки будут добавлены через JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Форма для карты -->
+                    <div class="form-group">
+                        <label class="form-label">Номер карты</label>
+                        <input type="text" class="form-input" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                        <span class="form-hint">Введите 16-19 цифр номера карты</span>
+                    </div>
+                </div>
+                
+                <!-- Блок для вывода на ЮMoney -->
+                <div id="yoomoney-withdraw-block" class="withdraw-method-block">
+                    <div class="form-group">
+                        <label class="form-label">Номер кошелька ЮMoney</label>
+                        <input type="text" class="form-input" id="yoomoney-account" placeholder="4100123456789012" maxlength="20">
+                        <span class="form-hint">Введите 13-20 цифр номера кошелька ЮMoney</span>
+                    </div>
+                </div>
+                
+                <!-- Форма вывода -->
+                <form id="withdraw-form">
+                    <div class="form-group">
+                        <label class="form-label">Сумма вывода</label>
+                        <input type="number" class="form-input" id="withdraw-amount" placeholder="Например: 5000" min="100" max="100000" required>
+                        <span class="form-hint">Минимальная сумма: 100 ₽</span>
+                        <div style="margin-top: 8px; font-size: 14px; color: var(--tg-secondary-text-color);" id="withdraw-info">
+                            Комиссия: 0 ₽ • К получению: 0 ₽
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="withdraw-button">
+                        <i class="fas fa-wallet"></i>
+                        Вывести на карту
+                    </button>
+                </form>
+            </div>
+            
+            <!-- История операций -->
+            <div id="history-tab" class="section fade-in hidden">
+                <div class="section-title">
+                    <i class="fas fa-history"></i>
+                    <span>История операций</span>
+                </div>
+                
+                <div id="history-list">
+                    <div class="empty-state">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <p>История операций пуста</p>
+                        <p class="text-muted mt-2">Совершите первую операцию</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Новости -->
+            <div id="news-tab" class="section fade-in hidden">
+                <div class="section-title">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Новости CashCheck</span>
+                </div>
+                
+                <div class="news-list" id="news-list">
+                    <!-- Новости будут добавлены через JS -->
+                </div>
+            </div>
+            
+            <!-- Информация о системе -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Безопасность системы</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
+                        <i class="fas fa-lock" style="font-size: 24px; color: var(--tg-link-color); margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Защита</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Шифрование данных</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
+                        <i class="fas fa-bolt" style="font-size: 24px; color: var(--tg-link-color); margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Скорость</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Мгновенные переводы</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
+                        <i class="fas fa-user-secret" style="font-size: 24px; color: var(--tg-link-color); margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Анонимность</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Конфиденциальность</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
+                        <i class="fas fa-clock" style="font-size: 24px; color: var(--tg-link-color); margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Доступность</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">24/7 работа</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Футер -->
+            <div class="footer">
+                <div class="footer-links">
+                    <a href="#" class="footer-link" onclick="openModal('agreementModal'); return false;">Соглашение</a>
+                    <a href="#" class="footer-link" onclick="showNotification('Поддержка', 'Для связи: cashcheckru@mail.ru', 'info'); return false;">Поддержка</a>
+                    <a href="#" class="footer-link" onclick="showTab('news'); return false;">Новости</a>
+                </div>
+                <div class="footer-text">
+                    © 2025 CashCheck. Все права защищены.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Telegram WebApp API
+    let tg = window.Telegram.WebApp;
+    
+    // Firebase конфигурация (замените на свою!)
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+    
+    // Инициализация Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    // Глобальные переменные
+    let currentUser = null;
+    let userBalance = 0;
+    let checks = [];
+    let withdrawals = [];
+    let selectedBank = null;
+    let selectedPaymentMethod = 'card';
+    let selectedWithdrawMethod = 'card';
+    
+    // Список банков
+    const RUSSIAN_BANKS = [
+        { id: 'sber', name: 'Сбер', color: '#21A038' },
+        { id: 'vtb', name: 'ВТБ', color: '#1946A0' },
+        { id: 'tinkoff', name: 'Тинькофф', color: '#FFDD2D', textColor: '#000000' },
+        { id: 'alfa', name: 'Альфа', color: '#EF3124' },
+        { id: 'raiffeisen', name: 'Райффайзен', color: '#FFCD00', textColor: '#000000' },
+        { id: 'gazprom', name: 'Газпром', color: '#2D5BFF' },
+        { id: 'rosbank', name: 'Росбанк', color: '#004C97' },
+        { id: 'mts', name: 'МТС', color: '#E30613' },
+        { id: 'post', name: 'Озон банк', color: '#004F9F' }
+    ];
+    
+    // Новости
+    const NEWS = [
+        {
+            id: 1,
+            date: '7 января 2026',
+            title: 'Интеграция с Firebase!',
+            content: 'Теперь чеки работают через Firebase! Вы можете создавать и активировать чеки, которые будут доступны всем пользователям системы.',
+            type: 'info'
+        },
+        {
+            id: 2,
+            date: '6 января 2026',
+            title: 'Внимание: временные ограничения на пополнение!',
+            content: 'В связи с техническими работами пополнение баланса через банковские карты и ЮMoney временно недоступно.',
+            type: 'warning'
+        },
+        {
+            id: 3,
+            date: '31 декабря 2025',
+            title: 'Новый год - новые возможности!',
+            content: 'С наступающим Новым годом! В честь праздника мы сделали особый чек на 400р с неограниченным количеством активаций. Код чека: <strong>HAPPY2026</strong>.',
+            type: 'highlight'
+        }
+    ];
+    
+    // Инициализация аутентификации Firebase через Telegram
+    async function initFirebaseAuth() {
+        try {
+            // Создаем кастомный токен на основе Telegram данных
+            const tgUser = tg.initDataUnsafe?.user;
+            if (!tgUser) throw new Error('No Telegram user data');
+            
+            // Создаем уникальный ID пользователя Telegram
+            const telegramId = tgUser.id.toString();
+            const userName = tgUser.first_name || 'Пользователь';
+            const userUsername = tgUser.username || '';
+            
+            // Используем Telegram ID как UID для Firebase
+            const customToken = await createCustomToken(telegramId);
+            
+            // Авторизуемся в Firebase
+            await auth.signInWithCustomToken(customToken);
+            
+            // Создаем или получаем пользователя
+            currentUser = {
+                id: telegramId,
+                telegramId: telegramId,
+                name: userName,
+                username: userUsername,
+                uid: auth.currentUser.uid
+            };
+            
+            // Создаем/обновляем запись пользователя в Firestore
+            await db.collection('users').doc(telegramId).set({
+                name: userName,
+                username: userUsername,
+                telegramId: telegramId,
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            // Загружаем данные пользователя
+            await loadUserData();
+            
+            return true;
+        } catch (error) {
+            console.error('Firebase auth error:', error);
+            // Резервный режим без Firebase
+            initUserLocal();
+            return false;
+        }
+    }
+    
+    // Функция создания кастомного токена (в реальном приложении это делается на сервере)
+    // Для демонстрации используем упрощенный вариант
+    async function createCustomToken(telegramId) {
+        // В реальном приложении здесь должен быть запрос к вашему серверу
+        // который вернет кастомный токен, подписанный сервисным ключом Firebase
+        
+        // Для демонстрации создаем простой токен (в production не использовать!)
+        return btoa(JSON.stringify({
+            uid: telegramId,
+            iat: Date.now(),
+            exp: Date.now() + 3600000
+        }));
+    }
+    
+    // Загрузка данных пользователя из Firestore
+    async function loadUserData() {
+        try {
+            const userDoc = await db.collection('users').doc(currentUser.id).get();
+            
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                userBalance = userData.balance || 0;
+                
+                // Загружаем историю операций
+                await loadUserTransactions();
+                
+                // Загружаем активные чеки пользователя
+                await loadUserChecks();
+            } else {
+                // Создаем нового пользователя с нулевым балансом
+                userBalance = 0;
+                await db.collection('users').doc(currentUser.id).update({
+                    balance: 0
+                });
+            }
+            
+            updateBalance();
+            updateHistory();
+            
+        } catch (error) {
+            console.error('Error loading user data:', error);
+            showNotification('Ошибка', 'Не удалось загрузить данные пользователя', 'error');
+        }
+    }
+    
+    // Загрузка транзакций пользователя
+    async function loadUserTransactions() {
+        try {
+            const snapshot = await db.collection('transactions')
+                .where('userId', '==', currentUser.id)
+                .orderBy('timestamp', 'desc')
+                .limit(50)
+                .get();
+            
+            checks = [];
+            withdrawals = [];
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.type === 'check_created' || data.type === 'check_activated') {
+                    checks.push({
+                        id: doc.id,
+                        ...data,
+                        date: data.timestamp.toDate().toLocaleDateString('ru-RU'),
+                        time: data.timestamp.toDate().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                    });
+                } else if (data.type === 'withdrawal') {
+                    withdrawals.push({
+                        id: doc.id,
+                        ...data,
+                        date: data.timestamp.toDate().toLocaleDateString('ru-RU'),
+                        time: data.timestamp.toDate().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                    });
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error loading transactions:', error);
+        }
+    }
+    
+    // Загрузка чеков пользователя
+    async function loadUserChecks() {
+        try {
+            const snapshot = await db.collection('checks')
+                .where('creatorId', '==', currentUser.id)
+                .where('status', '==', 'active')
+                .get();
+            
+            // Можно добавить обработку активных чеков пользователя
+        } catch (error) {
+            console.error('Error loading user checks:', error);
+        }
+    }
+    
+    // Инициализация Telegram
+    async function initTelegram() {
+        tg.expand();
+        tg.enableClosingConfirmation();
+        initTheme();
+        
+        // Инициализируем Firebase аутентификацию
+        const firebaseReady = await initFirebaseAuth();
+        
+        if (!firebaseReady) {
+            showNotification('Внимание', 'Работаем в локальном режиме. Некоторые функции ограничены.', 'warning');
+        }
+        
+        // Инициализируем банки
+        initBanks();
+        
+        // Обновляем информацию о выводе
+        updateWithdrawInfo();
+        
+        // Загружаем новости
+        loadNews();
+        
+        // Устанавливаем обработчик для изменения суммы вывода
+        document.getElementById('withdraw-amount').addEventListener('input', updateWithdrawInfo);
+    }
+    
+    // Инициализация темы
+    function initTheme() {
+        if (tg.colorScheme === 'dark') {
+            document.body.classList.add('theme-dark');
+        } else {
+            document.body.classList.remove('theme-dark');
+        }
+        
+        tg.onEvent('themeChanged', () => {
+            if (tg.colorScheme === 'dark') {
+                document.body.classList.add('theme-dark');
+            } else {
+                document.body.classList.remove('theme-dark');
+            }
+        });
+    }
+    
+    // Резервная инициализация (если Firebase не работает)
+    function initUserLocal() {
+        const tgUser = tg.initDataUnsafe?.user;
+        if (!tgUser) return;
+        
+        const userId = `tg_${tgUser.id}`;
+        const tgUsersStorage = JSON.parse(localStorage.getItem('tgUsers')) || {};
+        
+        if (tgUsersStorage[userId]) {
+            const userData = tgUsersStorage[userId];
+            currentUser = {
+                id: userId,
+                name: tgUser.first_name || 'Пользователь',
+                telegramId: tgUser.id
+            };
+            userBalance = userData.balance || 0;
+            checks = userData.checks || [];
+            withdrawals = userData.withdrawals || [];
+        } else {
+            currentUser = {
+                id: userId,
+                name: tgUser.first_name || 'Пользователь',
+                telegramId: tgUser.id,
+                username: tgUser.username
+            };
+            userBalance = 0;
+            checks = [];
+            withdrawals = [];
+            
+            tgUsersStorage[userId] = {
+                ...currentUser,
+                balance: userBalance,
+                checks: checks,
+                withdrawals: withdrawals,
+                registrationDate: new Date().toISOString()
+            };
+            localStorage.setItem('tgUsers', JSON.stringify(tgUsersStorage));
+            
+            showNotification('Добро пожаловать!', `Привет, ${currentUser.name}!`, 'success');
+        }
+        
+        updateBalance();
+        updateHistory();
+    }
+    
+    // Обновление баланса
+    function updateBalance() {
+        const balanceElement = document.getElementById('balance');
+        if (balanceElement) {
+            balanceElement.textContent = userBalance.toFixed(2).replace('.', ',') + ' ₽';
+        }
+    }
+    
+    // Показать уведомление
+    function showNotification(title, message, type = 'info') {
+        const notification = document.getElementById('notification');
+        const titleElement = document.getElementById('notification-title');
+        const textElement = document.getElementById('notification-text');
+        const iconElement = document.getElementById('notification-icon');
+        
+        titleElement.textContent = title;
+        textElement.textContent = message;
+        
+        switch(type) {
+            case 'success':
+                iconElement.textContent = '✅';
+                break;
+            case 'error':
+                iconElement.textContent = '❌';
+                break;
+            case 'warning':
+                iconElement.textContent = '⚠️';
+                break;
+            case 'info':
+                iconElement.textContent = '💸';
+                break;
+            default:
+                iconElement.textContent = '💸';
+        }
+        
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+    
+    // Показать/скрыть табы
+    function showTab(tabName) {
+        document.querySelectorAll('.section.fade-in').forEach(section => {
+            section.classList.add('hidden');
+        });
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        const targetTab = document.getElementById(`${tabName}-tab`);
+        if (targetTab) {
+            targetTab.classList.remove('hidden');
+            targetTab.style.animation = 'none';
+            setTimeout(() => {
+                targetTab.style.animation = '';
+            }, 10);
+        }
+        
+        const tabButton = Array.from(document.querySelectorAll('.tab')).find(btn => 
+            btn.textContent.includes(tabName === 'checkout' ? 'Обналич' : 
+                tabName === 'create' ? 'Создать' :
+                tabName === 'topup' ? 'Пополнить' :
+                tabName === 'withdraw' ? 'Вывод' :
+                tabName === 'history' ? 'История' : 'Новости')
+        );
+        if (tabButton) tabButton.classList.add('active');
+        
+        if (tabName === 'withdraw') {
+            updateWithdrawInfo();
+        }
+    }
+    
+    // Инициализация банков
+    function initBanks() {
+        const bankGrid = document.getElementById('bank-grid');
+        if (!bankGrid) return;
+        
+        bankGrid.innerHTML = '';
+        
+        RUSSIAN_BANKS.forEach(bank => {
+            const bankOption = document.createElement('div');
+            bankOption.className = 'bank-option';
+            bankOption.dataset.bankId = bank.id;
+            bankOption.innerHTML = `
+                <div class="bank-logo" style="background: ${bank.color}; color: ${bank.textColor || 'white'}">
+                    ${bank.name.substring(0, 2)}
+                </div>
+                <div class="bank-name">${bank.name}</div>
+            `;
+            bankOption.addEventListener('click', () => selectBank(bank.id));
+            bankGrid.appendChild(bankOption);
+        });
+        
+        if (RUSSIAN_BANKS.length > 0) {
+            selectBank(RUSSIAN_BANKS[0].id);
+        }
+    }
+    
+    // Выбор банка
+    function selectBank(bankId) {
+        selectedBank = bankId;
+        
+        document.querySelectorAll('.bank-option').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const selectedItem = document.querySelector(`.bank-option[data-bank-id="${bankId}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('active');
+        }
+    }
+    
+    // Выбор метода оплаты
+    function selectPaymentMethod(method) {
+        selectedPaymentMethod = method;
+        
+        document.querySelectorAll('.payment-method').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const selectedItem = document.querySelectorAll('.payment-method')[method === 'card' ? 0 : 1];
+        if (selectedItem) {
+            selectedItem.classList.add('active');
+        }
+        
+        showNotification('Внимание', 'Пополнение временно недоступно.', 'warning');
+    }
+    
+    // Выбор метода вывода
+    function selectWithdrawMethod(method) {
+        selectedWithdrawMethod = method;
+        
+        document.querySelectorAll('.method-switch').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        document.querySelectorAll('.method-switch')[method === 'card' ? 0 : 1].classList.add('active');
+        
+        document.querySelectorAll('.withdraw-method-block').forEach(block => {
+            block.classList.remove('active');
+        });
+        
+        if (method === 'card') {
+            document.getElementById('card-withdraw-block').classList.add('active');
+            document.getElementById('withdraw-button').innerHTML = '<i class="fas fa-wallet"></i> Вывести на карту';
+            document.getElementById('card-number').required = true;
+            document.getElementById('yoomoney-account').required = false;
+        } else {
+            document.getElementById('yoomoney-withdraw-block').classList.add('active');
+            document.getElementById('withdraw-button').innerHTML = '<i class="fas fa-money-bill-wave"></i> Вывести на ЮMoney';
+            document.getElementById('card-number').required = false;
+            document.getElementById('yoomoney-account').required = true;
+        }
+        
+        updateWithdrawInfo();
+    }
+    
+    // Обновление информации о выводе
+    function updateWithdrawInfo() {
+        const amountInput = document.getElementById('withdraw-amount');
+        const infoElement = document.getElementById('withdraw-info');
+        
+        if (!amountInput || !infoElement) return;
+        
+        const amount = parseFloat(amountInput.value) || 0;
+        
+        if (amount >= 100) {
+            const fee = (amount * 0.015).toFixed(2);
+            const total = (amount - parseFloat(fee)).toFixed(2);
+            
+            infoElement.innerHTML = `
+                Комиссия: ${fee.replace('.', ',')} ₽ • К получению: <strong>${total.replace('.', ',')} ₽</strong>
+            `;
+        } else {
+            infoElement.innerHTML = 'Комиссия: 0 ₽ • К получению: 0 ₽';
+        }
+    }
+    
+    // Загрузка новостей
+    function loadNews() {
+        const newsList = document.getElementById('news-list');
+        if (!newsList) return;
+        
+        newsList.innerHTML = '';
+        
+        NEWS.forEach(news => {
+            const newsItem = document.createElement('div');
+            newsItem.className = `news-item ${news.type === 'warning' ? 'news-warning' : news.type === 'highlight' ? 'news-highlight' : ''}`;
+            
+            newsItem.innerHTML = `
+                <div class="news-date">${news.date}</div>
+                <div class="news-title">${news.title}</div>
+                <div class="news-content">${news.content}</div>
+            `;
+            
+            newsList.appendChild(newsItem);
+        });
+    }
+    
+    // Открыть модальное окно
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    // Закрыть модальное окно
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+    }
+    
+    // Генерация кода чека
+    function generateCheckCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 10; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+    
+    // СОЗДАНИЕ ЧЕКА ЧЕРЕЗ FIREBASE
+    async function createCheckFirebase(amount) {
+        try {
+            const checkCode = generateCheckCode();
+            
+            // Проверяем баланс
+            if (amount > userBalance) {
+                throw new Error('Недостаточно средств на балансе');
+            }
+            
+            // Создаем чек в Firestore
+            await db.collection('checks').doc(checkCode).set({
+                code: checkCode,
+                amount: amount,
+                creatorId: currentUser.id,
+                creatorName: currentUser.name,
+                status: 'active',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 дней
+                isFirebase: true
+            });
+            
+            // Списываем средства с баланса пользователя
+            userBalance -= amount;
+            await db.collection('users').doc(currentUser.id).update({
+                balance: userBalance
+            });
+            
+            // Добавляем транзакцию
+            await db.collection('transactions').add({
+                userId: currentUser.id,
+                type: 'check_created',
+                amount: -amount,
+                checkCode: checkCode,
+                description: `Создан чек ${checkCode}`,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Обновляем локальный баланс
+            updateBalance();
+            
+            return {
+                success: true,
+                code: checkCode,
+                amount: amount
+            };
+            
+        } catch (error) {
+            console.error('Error creating check:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    
+    // АКТИВАЦИЯ ЧЕКА ЧЕРЕЗ FIREBASE
+    async function activateCheckFirebase(checkCode) {
+        try {
+            const checkRef = db.collection('checks').doc(checkCode);
+            
+            // Используем транзакцию для безопасного обновления
+            const result = await db.runTransaction(async (transaction) => {
+                const checkDoc = await transaction.get(checkRef);
+                
+                if (!checkDoc.exists) {
+                    throw new Error('Чек не найден');
+                }
+                
+                const checkData = checkDoc.data();
+                
+                // Проверяем статус чека
+                if (checkData.status !== 'active') {
+                    throw new Error('Чек уже использован');
+                }
+                
+                // Проверяем срок действия
+                if (checkData.expiresAt && new Date(checkData.expiresAt.toDate()) < new Date()) {
+                    throw new Error('Срок действия чека истек');
+                }
+                
+                // Обновляем чек
+                transaction.update(checkRef, {
+                    status: 'used',
+                    activatorId: currentUser.id,
+                    activatorName: currentUser.name,
+                    activatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Начисляем средства пользователю
+                const userRef = db.collection('users').doc(currentUser.id);
+                const userDoc = await transaction.get(userRef);
+                const currentBalance = userDoc.data().balance || 0;
+                const newBalance = currentBalance + checkData.amount;
+                
+                transaction.update(userRef, {
+                    balance: newBalance
+                });
+                
+                return {
+                    amount: checkData.amount,
+                    newBalance: newBalance
+                };
+            });
+            
+            // Добавляем транзакцию
+            await db.collection('transactions').add({
+                userId: currentUser.id,
+                type: 'check_activated',
+                amount: result.amount,
+                checkCode: checkCode,
+                description: `Активирован чек ${checkCode}`,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Обновляем локальный баланс
+            userBalance = result.newBalance;
+            updateBalance();
+            
+            return {
+                success: true,
+                amount: result.amount
+            };
+            
+        } catch (error) {
+            console.error('Error activating check:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    
+    // ОБРАБОТЧИК СОЗДАНИЯ ЧЕКА
+    document.getElementById('create-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
+            return;
+        }
+        
+        const amount = parseFloat(document.getElementById('check-amount').value);
+        
+        if (amount < 10 || amount > 100000) {
+            showNotification('Ошибка', 'Сумма должна быть от 10 до 100 000 ₽', 'error');
+            return;
+        }
+        
+        if (amount > userBalance) {
+            showNotification('Ошибка', 'Недостаточно средств на балансе', 'error');
+            return;
+        }
+        
+        try {
+            const result = await createCheckFirebase(amount);
+            
+            if (result.success) {
+                // Показываем результат
+                document.getElementById('new-check-code').textContent = result.code;
+                document.getElementById('check-amount-display').textContent = amount.toFixed(2).replace('.', ',') + ' ₽';
+                document.getElementById('check-result').classList.remove('hidden');
+                
+                // Обновляем историю
+                await loadUserTransactions();
+                updateHistory();
+                
+                showNotification('Чек создан', `Чек на сумму ${amount} ₽ успешно создан`, 'success');
+                document.getElementById('check-amount').value = '';
+            } else {
+                showNotification('Ошибка', result.error, 'error');
+            }
+            
+        } catch (error) {
+            showNotification('Ошибка', 'Не удалось создать чек', 'error');
+        }
+    });
+    
+    // ОБРАБОТЧИК АКТИВАЦИИ ЧЕКА
+    document.getElementById('checkout-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
+            return;
+        }
+        
+        const checkCode = document.getElementById('check-code').value.toUpperCase().trim();
+        
+        if (checkCode.length !== 10) {
+            showNotification('Ошибка', 'Код чека должен содержать 10 символов', 'error');
+            return;
+        }
+        
+        try {
+            const result = await activateCheckFirebase(checkCode);
+            
+            if (result.success) {
+                // Обновляем историю
+                await loadUserTransactions();
+                updateHistory();
+                
+                showNotification('Успешно!', `Чек на сумму ${result.amount} ₽ обналичен`, 'success');
+                document.getElementById('check-code').value = '';
+            } else {
+                showNotification('Ошибка', result.error, 'error');
+            }
+            
+        } catch (error) {
+            showNotification('Ошибка', 'Не удалось активировать чек', 'error');
+        }
+    });
+    
+    // Копирование кода чека
+    function copyCheckCode() {
+        const code = document.getElementById('new-check-code').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            showNotification('Скопировано', 'Код чека скопирован в буфер обмена', 'success');
+        });
+    }
+    
+    // ВЫВОД СРЕДСТВ
+    document.getElementById('withdraw-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
+            return;
+        }
+        
+        const amount = parseFloat(document.getElementById('withdraw-amount').value);
+        
+        if (amount < 100) {
+            showNotification('Ошибка', 'Минимальная сумма вывода: 100 ₽', 'error');
+            return;
+        }
+        
+        if (amount > userBalance) {
+            showNotification('Ошибка', 'Недостаточно средств на балансе', 'error');
+            return;
+        }
+        
+        const fee = amount * 0.015;
+        const total = amount - fee;
+        
+        if (selectedWithdrawMethod === 'card') {
+            const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+            
+            if (!selectedBank) {
+                showNotification('Ошибка', 'Выберите банк для вывода', 'error');
+                return;
+            }
+            
+            if (!cardNumber || cardNumber.length < 16 || cardNumber.length > 19 || !/^\d+$/.test(cardNumber)) {
+                showNotification('Ошибка', 'Введите корректный номер карты', 'error');
+                return;
+            }
+            
+            const bank = RUSSIAN_BANKS.find(b => b.id === selectedBank);
+            const bankName = bank ? bank.name : 'выбранный банк';
+            
+            try {
+                // Обновляем баланс
+                userBalance -= amount;
+                await db.collection('users').doc(currentUser.id).update({
+                    balance: userBalance
+                });
+                
+                // Добавляем транзакцию
+                await db.collection('transactions').add({
+                    userId: currentUser.id,
+                    type: 'withdrawal',
+                    amount: -amount,
+                    method: 'card',
+                    bank: bankName,
+                    cardLast4: cardNumber.slice(-4),
+                    fee: fee,
+                    total: total,
+                    status: 'processing',
+                    description: `Вывод на карту ${bankName}`,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Обновляем историю
+                await loadUserTransactions();
+                updateHistory();
+                updateBalance();
+                
+                showNotification('Заявка принята', 
+                    `Заявка на вывод ${amount.toFixed(2)} ₽ на карту ${bankName} принята. Средства поступят в течение 1-7 рабочих дней.`, 
+                    'success');
+                
+                // Очищаем форму
+                document.getElementById('card-number').value = '';
+                document.getElementById('withdraw-amount').value = '';
+                updateWithdrawInfo();
+                
+            } catch (error) {
+                showNotification('Ошибка', 'Не удалось создать заявку на вывод', 'error');
+            }
+            
+        } else {
+            const yoomoneyAccount = document.getElementById('yoomoney-account').value.trim();
+            
+            if (!yoomoneyAccount || yoomoneyAccount.length < 13 || yoomoneyAccount.length > 20 || !/^\d+$/.test(yoomoneyAccount)) {
+                showNotification('Ошибка', 'Введите корректный номер кошелька ЮMoney', 'error');
+                return;
+            }
+            
+            try {
+                // Обновляем баланс
+                userBalance -= amount;
+                await db.collection('users').doc(currentUser.id).update({
+                    balance: userBalance
+                });
+                
+                // Добавляем транзакцию
+                await db.collection('transactions').add({
+                    userId: currentUser.id,
+                    type: 'withdrawal',
+                    amount: -amount,
+                    method: 'yoomoney',
+                    account: yoomoneyAccount,
+                    fee: fee,
+                    total: total,
+                    status: 'processing',
+                    description: `Вывод на ЮMoney`,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Обновляем историю
+                await loadUserTransactions();
+                updateHistory();
+                updateBalance();
+                
+                showNotification('Заявка принята', 
+                    `Заявка на вывод ${amount.toFixed(2)} ₽ на кошелек ЮMoney принята. Средства поступят в течение 1-3 рабочих дней.`, 
+                    'success');
+                
+                // Очищаем форму
+                document.getElementById('yoomoney-account').value = '';
+                document.getElementById('withdraw-amount').value = '';
+                updateWithdrawInfo();
+                
+            } catch (error) {
+                showNotification('Ошибка', 'Не удалось создать заявку на вывод', 'error');
+            }
+        }
+    });
+    
+    // Обновление истории
+    function updateHistory() {
+        const historyList = document.getElementById('history-list');
+        if (!historyList) return;
+        
+        historyList.innerHTML = '';
+        
+        // Объединяем все операции
+        const allTransactions = [];
+        
+        // Добавляем чеки
+        checks.forEach(check => {
+            allTransactions.push({
+                ...check,
+                sortDate: new Date(check.timestamp?.toDate() || Date.now()),
+                isWithdraw: false
+            });
+        });
+        
+        // Добавляем выводы
+        withdrawals.forEach(withdrawal => {
+            allTransactions.push({
+                ...withdrawal,
+                sortDate: new Date(withdrawal.timestamp?.toDate() || Date.now()),
+                isWithdraw: true
+            });
+        });
+        
+        // Сортируем
+        allTransactions.sort((a, b) => b.sortDate - a.sortDate);
+        
+        if (allTransactions.length === 0) {
+            historyList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <p>История операций пуста</p>
+                    <p class="text-muted mt-2">Совершите первую операцию</p>
+                </div>
+            `;
+            return;
+        }
+        
+        allTransactions.forEach(transaction => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            if (transaction.isWithdraw) {
+                let methodInfo = '';
+                if (transaction.method === 'card') {
+                    methodInfo = `${transaction.bank} •••• ${transaction.cardLast4 || '****'}`;
+                } else {
+                    const account = transaction.account || '';
+                    const maskedAccount = account.length > 8 ? 
+                        `${account.substring(0,4)}...${account.substring(account.length-4)}` : account;
+                    methodInfo = `ЮMoney • ${maskedAccount}`;
+                }
+                
+                item.innerHTML = `
+                    <div class="history-info">
+                        <div class="history-title">${methodInfo}</div>
+                        <div class="history-subtitle">${transaction.date} ${transaction.time} • Вывод</div>
+                        <div class="history-status status-pending">В обработке</div>
+                    </div>
+                    <div class="history-amount negative">-${transaction.amount?.toFixed(2) || '0.00'} ₽</div>
+                `;
+            } else {
+                const isReceived = transaction.type === 'check_activated';
+                const status = transaction.status === 'active' ? 'Активен' : 'Использован';
+                const statusClass = transaction.status === 'active' ? 'status-pending' : 'status-success';
+                
+                item.innerHTML = `
+                    <div class="history-info">
+                        <div class="history-title">Чек ${transaction.checkCode}</div>
+                        <div class="history-subtitle">${transaction.date} ${transaction.time} • ${isReceived ? 'Получен' : 'Создан'}</div>
+                        <div class="history-status ${statusClass}">${status}</div>
+                    </div>
+                    <div class="history-amount ${isReceived ? 'positive' : 'negative'}">
+                        ${isReceived ? '+' : '-'}${transaction.amount?.toFixed(2) || '0.00'} ₽
+                    </div>
+                `;
+            }
+            
+            historyList.appendChild(item);
+        });
+    }
+    
+    // Обработчики событий
+    document.getElementById('card-number')?.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/(.{4})/g, '$1 ').trim();
+        e.target.value = value.substring(0, 19);
+    });
+    
+    document.getElementById('yoomoney-account')?.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        e.target.value = value.substring(0, 20);
+    });
+    
+    document.querySelectorAll('.payment-method').forEach(method => {
+        method.addEventListener('click', function() {
+            showNotification('Внимание', 'Пополнение временно недоступно.', 'warning');
+        });
+    });
+    
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        initTelegram();
+        
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal(this.id);
+                }
+            });
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.show').forEach(modal => {
+                    closeModal(modal.id);
+                });
+            }
+        });
+        
+        if (navigator.vibrate) {
+            document.querySelectorAll('button, .tab, .bank-option, .footer-link, .payment-method, .method-switch').forEach(element => {
+                element.addEventListener('click', function() {
+                    navigator.vibrate(50);
+                });
+            });
+        }
+    });
+</script>
+</body>
+</html>
