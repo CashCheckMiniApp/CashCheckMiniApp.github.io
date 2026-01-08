@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CashCheck — Пространство для денежных переводов</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <style>
         /* CSS переменные для темной/светлой темы */
         :root {
@@ -1210,26 +1209,30 @@
     // Telegram WebApp API
     let tg = window.Telegram.WebApp;
     
-    // Firebase конфигурация (замените на свою!)
+    // ============ FIREBASE КОНФИГУРАЦИЯ ============
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyBaxoVYKmWtLgmTcM0AS5acQ1TN8qKyFfA",
+        authDomain: "cashcheck-7e5c6.firebaseapp.com",
+        projectId: "cashcheck-7e5c6",
+        storageBucket: "cashcheck-7e5c6.firebasestorage.app",
+        messagingSenderId: "706696825244",
+        appId: "1:706696825244:web:e8de79e5cdae5df9606059"
     };
     
     // Инициализация Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+    let app, db;
+    try {
+        app = firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        console.log("Firebase инициализирован");
+    } catch (error) {
+        console.error("Ошибка инициализации Firebase:", error);
+    }
     
     // Глобальные переменные
     let currentUser = null;
     let userBalance = 0;
-    let checks = [];
-    let withdrawals = [];
+    let userTransactions = [];
     let selectedBank = null;
     let selectedPaymentMethod = 'card';
     let selectedWithdrawMethod = 'card';
@@ -1272,176 +1275,372 @@
         }
     ];
     
-    // Инициализация аутентификации Firebase через Telegram
-    async function initFirebaseAuth() {
+    // ============ СОХРАНЕНИЕ В FIRESTORE ============
+    
+    // Сохранение в localStorage (резервное)
+    function saveToLocalStorage(userId, data) {
         try {
-            // Создаем кастомный токен на основе Telegram данных
-            const tgUser = tg.initDataUnsafe?.user;
-            if (!tgUser) throw new Error('No Telegram user data');
-            
-            // Создаем уникальный ID пользователя Telegram
-            const telegramId = tgUser.id.toString();
-            const userName = tgUser.first_name || 'Пользователь';
-            const userUsername = tgUser.username || '';
-            
-            // Используем Telegram ID как UID для Firebase
-            const customToken = await createCustomToken(telegramId);
-            
-            // Авторизуемся в Firebase
-            await auth.signInWithCustomToken(customToken);
-            
-            // Создаем или получаем пользователя
-            currentUser = {
-                id: telegramId,
-                telegramId: telegramId,
-                name: userName,
-                username: userUsername,
-                uid: auth.currentUser.uid
-            };
-            
-            // Создаем/обновляем запись пользователя в Firestore
-            await db.collection('users').doc(telegramId).set({
-                name: userName,
-                username: userUsername,
-                telegramId: telegramId,
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-            
-            // Загружаем данные пользователя
-            await loadUserData();
-            
-            return true;
-        } catch (error) {
-            console.error('Firebase auth error:', error);
-            // Резервный режим без Firebase
-            initUserLocal();
-            return false;
+            localStorage.setItem(`user_${userId}`, JSON.stringify(data));
+        } catch (e) {
+            console.error("Ошибка сохранения в localStorage:", e);
         }
     }
     
-    // Функция создания кастомного токена (в реальном приложении это делается на сервере)
-    // Для демонстрации используем упрощенный вариант
-    async function createCustomToken(telegramId) {
-        // В реальном приложении здесь должен быть запрос к вашему серверу
-        // который вернет кастомный токен, подписанный сервисным ключом Firebase
-        
-        // Для демонстрации создаем простой токен (в production не использовать!)
-        return btoa(JSON.stringify({
-            uid: telegramId,
-            iat: Date.now(),
-            exp: Date.now() + 3600000
-        }));
+    // Загрузка из localStorage (резервное)
+    function loadFromLocalStorage(userId) {
+        try {
+            const data = localStorage.getItem(`user_${userId}`);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            console.error("Ошибка загрузки из localStorage:", e);
+            return null;
+        }
     }
     
-    // Загрузка данных пользователя из Firestore
-    async function loadUserData() {
+    // Сохранение пользователя в Firestore
+    async function saveUserToFirestore(userId, userData) {
         try {
-            const userDoc = await db.collection('users').doc(currentUser.id).get();
+            if (!db) {
+                console.warn("Firestore недоступен, сохраняем в localStorage");
+                saveToLocalStorage(userId, userData);
+                return;
+            }
             
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                userBalance = userData.balance || 0;
+            // Подготавливаем данные для Firestore
+            const firestoreData = { ...userData };
+            
+            // Обновляем timestamp
+            firestoreData.updated = firebase.firestore.FieldValue.serverTimestamp();
+            firestoreData.lastUpdate = new Date().toISOString();
+            
+            await db.collection('users').doc(userId).set(firestoreData, { merge: true });
+            console.log("Данные сохранены в Firestore для:", userId);
+            
+            // Также сохраняем копию в localStorage для быстрого доступа
+            saveToLocalStorage(userId, userData);
+            
+        } catch (error) {
+            console.error("Ошибка сохранения в Firestore:", error);
+            saveToLocalStorage(userId, userData);
+        }
+    }
+    
+    // ============ ИНИЦИАЛИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ С FIRESTORE ============
+    async function initUserFirebase() {
+        try {
+            const tgUser = tg.initDataUnsafe?.user;
+            if (!tgUser) {
+                showNotification('Ошибка', 'Не удалось получить данные пользователя Telegram', 'error');
+                return;
+            }
+            
+            const userId = `tg_${tgUser.id}`;
+            
+            // Создаем объект пользователя
+            currentUser = {
+                id: userId,
+                name: tgUser.first_name || 'Пользователь',
+                telegramId: tgUser.id,
+                username: tgUser.username || null
+            };
+            
+            console.log("Загружаем данные для пользователя:", userId);
+            
+            // Пробуем загрузить из Firestore
+            let userData = null;
+            try {
+                if (db) {
+                    const userDoc = await db.collection('users').doc(userId).get();
+                    if (userDoc.exists) {
+                        userData = userDoc.data();
+                        console.log("Данные загружены из Firestore");
+                    }
+                }
+            } catch (firestoreError) {
+                console.warn("Ошибка Firestore, пробуем localStorage:", firestoreError);
+            }
+            
+            // Если не нашли в Firestore, пробуем localStorage
+            if (!userData) {
+                userData = loadFromLocalStorage(userId);
+                if (userData) {
+                    console.log("Данные загружены из localStorage");
+                }
+            }
+            
+            // Если данных нет вообще - новый пользователь
+            if (!userData) {
+                console.log("Новый пользователь, создаем запись");
                 
-                // Загружаем историю операций
-                await loadUserTransactions();
+                // Для пользователя iwnel - начальный баланс 1500, для остальных - 0
+                userBalance = (currentUser.username === 'iwnel') ? 1500 : 0;
+                userTransactions = [];
                 
-                // Загружаем активные чеки пользователя
-                await loadUserChecks();
+                userData = {
+                    ...currentUser,
+                    balance: userBalance,
+                    transactions: userTransactions,
+                    registrationDate: new Date().toISOString(),
+                    lastLogin: new Date().toISOString()
+                };
+                
+                // Бонус для iwnel
+                if (currentUser.username === 'iwnel') {
+                    userData.lastBonusDate = new Date().toDateString();
+                    userData.lastBonusTime = new Date().toISOString();
+                    
+                    const bonusTransaction = {
+                        id: 'bonus_' + Date.now(),
+                        type: 'bonus',
+                        amount: 1500,
+                        description: 'Специальный бонус',
+                        timestamp: new Date().toISOString(),
+                        date: new Date().toLocaleDateString('ru-RU'),
+                        time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                    };
+                    
+                    userTransactions.push(bonusTransaction);
+                    userData.transactions = userTransactions;
+                    
+                    showNotification('Специальный бонус', 'Вам начислено 1500 ₽', 'success');
+                }
+                
+                // Сохраняем нового пользователя
+                await saveUserToFirestore(userId, userData);
+                
             } else {
-                // Создаем нового пользователя с нулевым балансом
-                userBalance = 0;
-                await db.collection('users').doc(currentUser.id).update({
-                    balance: 0
-                });
+                // Существующий пользователь
+                userBalance = userData.balance || 0;
+                userTransactions = userData.transactions || [];
+                
+                console.log("Пользователь существует, баланс:", userBalance);
+                
+                // Обновляем время последнего входа
+                userData.lastLogin = new Date().toISOString();
+                
+                // Проверяем ежедневный бонус для iwnel
+                if (currentUser.username === 'iwnel') {
+                    const now = new Date();
+                    const today = now.toDateString();
+                    const lastBonusDate = userData.lastBonusDate || null;
+                    
+                    if (!lastBonusDate || lastBonusDate !== today) {
+                        userBalance += 1500;
+                        userData.balance = userBalance;
+                        userData.lastBonusDate = today;
+                        userData.lastBonusTime = now.toISOString();
+                        
+                        const bonusTransaction = {
+                            id: 'bonus_' + Date.now(),
+                            type: 'bonus',
+                            amount: 1500,
+                            description: 'Ежедневный бонус',
+                            timestamp: new Date().toISOString(),
+                            date: new Date().toLocaleDateString('ru-RU'),
+                            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                        };
+                        
+                        userTransactions.push(bonusTransaction);
+                        userData.transactions = userTransactions;
+                        
+                        showNotification('Ежедневный бонус', 'Вам начислено 1500 ₽', 'success');
+                    }
+                }
+                
+                // Сохраняем обновленные данные
+                await saveUserToFirestore(userId, userData);
             }
             
             updateBalance();
             updateHistory();
             
         } catch (error) {
-            console.error('Error loading user data:', error);
-            showNotification('Ошибка', 'Не удалось загрузить данные пользователя', 'error');
+            console.error("Критическая ошибка инициализации:", error);
+            showNotification('Ошибка', 'Не удалось загрузить данные', 'error');
         }
     }
     
-    // Загрузка транзакций пользователя
-    async function loadUserTransactions() {
+    // ============ ДОБАВЛЕНИЕ ТРАНЗАКЦИИ В FIRESTORE ============
+    async function addTransactionToFirebase(transaction) {
+        if (!currentUser) {
+            showNotification('Ошибка', 'Пользователь не авторизован', 'error');
+            return;
+        }
+        
         try {
-            const snapshot = await db.collection('transactions')
-                .where('userId', '==', currentUser.id)
-                .orderBy('timestamp', 'desc')
-                .limit(50)
-                .get();
+            const userId = currentUser.id;
             
-            checks = [];
-            withdrawals = [];
-            
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.type === 'check_created' || data.type === 'check_activated') {
-                    checks.push({
-                        id: doc.id,
-                        ...data,
-                        date: data.timestamp.toDate().toLocaleDateString('ru-RU'),
-                        time: data.timestamp.toDate().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-                    });
-                } else if (data.type === 'withdrawal') {
-                    withdrawals.push({
-                        id: doc.id,
-                        ...data,
-                        date: data.timestamp.toDate().toLocaleDateString('ru-RU'),
-                        time: data.timestamp.toDate().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-                    });
+            // Получаем текущие данные пользователя
+            let userData = null;
+            if (db) {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    userData = userDoc.data();
                 }
+            }
+            
+            // Если не удалось загрузить из Firestore, пробуем localStorage
+            if (!userData) {
+                userData = loadFromLocalStorage(userId);
+            }
+            
+            // Если всё равно нет данных, создаем новую структуру
+            if (!userData) {
+                userData = {
+                    ...currentUser,
+                    balance: userBalance,
+                    transactions: [],
+                    registrationDate: new Date().toISOString()
+                };
+            }
+            
+            // Подготавливаем транзакцию
+            transaction.id = 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            transaction.timestamp = new Date().toISOString();
+            transaction.date = new Date().toLocaleDateString('ru-RU');
+            transaction.time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            // Обновляем баланс
+            if (transaction.amount) {
+                userBalance += transaction.amount;
+                userData.balance = userBalance;
+            }
+            
+            // Добавляем транзакцию в историю
+            userData.transactions = userData.transactions || [];
+            userData.transactions.push(transaction);
+            userTransactions = userData.transactions;
+            
+            // Сохраняем обновленные данные
+            await saveUserToFirestore(userId, userData);
+            
+            // Обновляем интерфейс
+            updateBalance();
+            updateHistory();
+            
+            console.log("Транзакция добавлена:", transaction.type);
+            
+        } catch (error) {
+            console.error("Ошибка добавления транзакции:", error);
+            showNotification('Ошибка', 'Не удалось сохранить транзакцию', 'error');
+        }
+    }
+    
+    // ============ РАБОТА С ЧЕКАМИ ЧЕРЕЗ FIREBASE ============
+    // Создание чека
+    async function createCheckFirebase(amount) {
+        try {
+            if (!db) {
+                throw new Error("Firebase не инициализирован");
+            }
+            
+            const checkCode = generateCheckCode();
+            
+            if (amount > userBalance) {
+                throw new Error('Недостаточно средств на балансе');
+            }
+            
+            // Создаем чек в Firestore
+            await db.collection('checks').doc(checkCode).set({
+                code: checkCode,
+                amount: amount,
+                creatorId: currentUser.id,
+                creatorName: currentUser.name,
+                status: 'active',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)) // 30 дней
             });
             
-        } catch (error) {
-            console.error('Error loading transactions:', error);
-        }
-    }
-    
-    // Загрузка чеков пользователя
-    async function loadUserChecks() {
-        try {
-            const snapshot = await db.collection('checks')
-                .where('creatorId', '==', currentUser.id)
-                .where('status', '==', 'active')
-                .get();
+            // Добавляем транзакцию создания чека
+            await addTransactionToFirebase({
+                type: 'check_created',
+                amount: -amount,
+                checkCode: checkCode,
+                status: 'active',
+                description: `Создан чек ${checkCode}`
+            });
             
-            // Можно добавить обработку активных чеков пользователя
+            return {
+                success: true,
+                code: checkCode,
+                amount: amount
+            };
+            
         } catch (error) {
-            console.error('Error loading user checks:', error);
+            console.error('Error creating check:', error);
+            return {
+                success: false,
+                error: error.message
+            };
         }
     }
     
-    // Инициализация Telegram
-    async function initTelegram() {
-        tg.expand();
-        tg.enableClosingConfirmation();
-        initTheme();
-        
-        // Инициализируем Firebase аутентификацию
-        const firebaseReady = await initFirebaseAuth();
-        
-        if (!firebaseReady) {
-            showNotification('Внимание', 'Работаем в локальном режиме. Некоторые функции ограничены.', 'warning');
+    // Активация чека
+    async function activateCheckFirebase(checkCode) {
+        try {
+            if (!db) {
+                throw new Error("Firebase не инициализирован");
+            }
+            
+            checkCode = checkCode.toUpperCase().trim();
+            const checkRef = db.collection('checks').doc(checkCode);
+            
+            // Проверяем существование чека
+            const checkDoc = await checkRef.get();
+            
+            if (!checkDoc.exists) {
+                throw new Error('Чек не найден');
+            }
+            
+            const checkData = checkDoc.data();
+            
+            if (checkData.status !== 'active') {
+                throw new Error('Чек уже использован');
+            }
+            
+            // Проверяем срок действия
+            const expiresAt = checkData.expiresAt?.toDate ? checkData.expiresAt.toDate() : new Date(checkData.expiresAt);
+            if (expiresAt < new Date()) {
+                throw new Error('Срок действия чека истек');
+            }
+            
+            // Проверяем, что пользователь не активирует свой чек
+            if (checkData.creatorId === currentUser.id) {
+                throw new Error('Вы не можете активировать свой собственный чек');
+            }
+            
+            // Обновляем чек
+            await checkRef.update({
+                status: 'used',
+                activatorId: currentUser.id,
+                activatorName: currentUser.name,
+                activatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Добавляем транзакцию активации чека
+            await addTransactionToFirebase({
+                type: 'check_activated',
+                amount: checkData.amount,
+                checkCode: checkCode,
+                status: 'used',
+                description: `Активирован чек ${checkCode}`
+            });
+            
+            return {
+                success: true,
+                amount: checkData.amount
+            };
+            
+        } catch (error) {
+            console.error('Error activating check:', error);
+            return {
+                success: false,
+                error: error.message
+            };
         }
-        
-        // Инициализируем банки
-        initBanks();
-        
-        // Обновляем информацию о выводе
-        updateWithdrawInfo();
-        
-        // Загружаем новости
-        loadNews();
-        
-        // Устанавливаем обработчик для изменения суммы вывода
-        document.getElementById('withdraw-amount').addEventListener('input', updateWithdrawInfo);
     }
     
-    // Инициализация темы
+    // ============ ОСНОВНЫЕ ФУНКЦИИ ============
     function initTheme() {
         if (tg.colorScheme === 'dark') {
             document.body.classList.add('theme-dark');
@@ -1458,52 +1657,6 @@
         });
     }
     
-    // Резервная инициализация (если Firebase не работает)
-    function initUserLocal() {
-        const tgUser = tg.initDataUnsafe?.user;
-        if (!tgUser) return;
-        
-        const userId = `tg_${tgUser.id}`;
-        const tgUsersStorage = JSON.parse(localStorage.getItem('tgUsers')) || {};
-        
-        if (tgUsersStorage[userId]) {
-            const userData = tgUsersStorage[userId];
-            currentUser = {
-                id: userId,
-                name: tgUser.first_name || 'Пользователь',
-                telegramId: tgUser.id
-            };
-            userBalance = userData.balance || 0;
-            checks = userData.checks || [];
-            withdrawals = userData.withdrawals || [];
-        } else {
-            currentUser = {
-                id: userId,
-                name: tgUser.first_name || 'Пользователь',
-                telegramId: tgUser.id,
-                username: tgUser.username
-            };
-            userBalance = 0;
-            checks = [];
-            withdrawals = [];
-            
-            tgUsersStorage[userId] = {
-                ...currentUser,
-                balance: userBalance,
-                checks: checks,
-                withdrawals: withdrawals,
-                registrationDate: new Date().toISOString()
-            };
-            localStorage.setItem('tgUsers', JSON.stringify(tgUsersStorage));
-            
-            showNotification('Добро пожаловать!', `Привет, ${currentUser.name}!`, 'success');
-        }
-        
-        updateBalance();
-        updateHistory();
-    }
-    
-    // Обновление баланса
     function updateBalance() {
         const balanceElement = document.getElementById('balance');
         if (balanceElement) {
@@ -1511,7 +1664,6 @@
         }
     }
     
-    // Показать уведомление
     function showNotification(title, message, type = 'info') {
         const notification = document.getElementById('notification');
         const titleElement = document.getElementById('notification-title');
@@ -1545,7 +1697,6 @@
         }, 3000);
     }
     
-    // Показать/скрыть табы
     function showTab(tabName) {
         document.querySelectorAll('.section.fade-in').forEach(section => {
             section.classList.add('hidden');
@@ -1564,21 +1715,20 @@
             }, 10);
         }
         
-        const tabButton = Array.from(document.querySelectorAll('.tab')).find(btn => 
-            btn.textContent.includes(tabName === 'checkout' ? 'Обналич' : 
-                tabName === 'create' ? 'Создать' :
-                tabName === 'topup' ? 'Пополнить' :
-                tabName === 'withdraw' ? 'Вывод' :
-                tabName === 'history' ? 'История' : 'Новости')
-        );
-        if (tabButton) tabButton.classList.add('active');
+        const tabButtons = document.querySelectorAll('.tab');
+        const tabNames = ['checkout', 'create', 'topup', 'withdraw', 'history', 'news'];
+        const index = tabNames.indexOf(tabName);
+        if (index !== -1 && tabButtons[index]) {
+            tabButtons[index].classList.add('active');
+        }
         
         if (tabName === 'withdraw') {
             updateWithdrawInfo();
+        } else if (tabName === 'history') {
+            updateHistory();
         }
     }
     
-    // Инициализация банков
     function initBanks() {
         const bankGrid = document.getElementById('bank-grid');
         if (!bankGrid) return;
@@ -1604,7 +1754,6 @@
         }
     }
     
-    // Выбор банка
     function selectBank(bankId) {
         selectedBank = bankId;
         
@@ -1618,7 +1767,6 @@
         }
     }
     
-    // Выбор метода оплаты
     function selectPaymentMethod(method) {
         selectedPaymentMethod = method;
         
@@ -1634,7 +1782,6 @@
         showNotification('Внимание', 'Пополнение временно недоступно.', 'warning');
     }
     
-    // Выбор метода вывода
     function selectWithdrawMethod(method) {
         selectedWithdrawMethod = method;
         
@@ -1663,7 +1810,6 @@
         updateWithdrawInfo();
     }
     
-    // Обновление информации о выводе
     function updateWithdrawInfo() {
         const amountInput = document.getElementById('withdraw-amount');
         const infoElement = document.getElementById('withdraw-info');
@@ -1684,7 +1830,6 @@
         }
     }
     
-    // Загрузка новостей
     function loadNews() {
         const newsList = document.getElementById('news-list');
         if (!newsList) return;
@@ -1705,7 +1850,6 @@
         });
     }
     
-    // Открыть модальное окно
     function openModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -1714,7 +1858,6 @@
         }
     }
     
-    // Закрыть модальное окно
     function closeModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -1723,7 +1866,6 @@
         }
     }
     
-    // Генерация кода чека
     function generateCheckCode() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let result = '';
@@ -1733,140 +1875,7 @@
         return result;
     }
     
-    // СОЗДАНИЕ ЧЕКА ЧЕРЕЗ FIREBASE
-    async function createCheckFirebase(amount) {
-        try {
-            const checkCode = generateCheckCode();
-            
-            // Проверяем баланс
-            if (amount > userBalance) {
-                throw new Error('Недостаточно средств на балансе');
-            }
-            
-            // Создаем чек в Firestore
-            await db.collection('checks').doc(checkCode).set({
-                code: checkCode,
-                amount: amount,
-                creatorId: currentUser.id,
-                creatorName: currentUser.name,
-                status: 'active',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 дней
-                isFirebase: true
-            });
-            
-            // Списываем средства с баланса пользователя
-            userBalance -= amount;
-            await db.collection('users').doc(currentUser.id).update({
-                balance: userBalance
-            });
-            
-            // Добавляем транзакцию
-            await db.collection('transactions').add({
-                userId: currentUser.id,
-                type: 'check_created',
-                amount: -amount,
-                checkCode: checkCode,
-                description: `Создан чек ${checkCode}`,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // Обновляем локальный баланс
-            updateBalance();
-            
-            return {
-                success: true,
-                code: checkCode,
-                amount: amount
-            };
-            
-        } catch (error) {
-            console.error('Error creating check:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-    
-    // АКТИВАЦИЯ ЧЕКА ЧЕРЕЗ FIREBASE
-    async function activateCheckFirebase(checkCode) {
-        try {
-            const checkRef = db.collection('checks').doc(checkCode);
-            
-            // Используем транзакцию для безопасного обновления
-            const result = await db.runTransaction(async (transaction) => {
-                const checkDoc = await transaction.get(checkRef);
-                
-                if (!checkDoc.exists) {
-                    throw new Error('Чек не найден');
-                }
-                
-                const checkData = checkDoc.data();
-                
-                // Проверяем статус чека
-                if (checkData.status !== 'active') {
-                    throw new Error('Чек уже использован');
-                }
-                
-                // Проверяем срок действия
-                if (checkData.expiresAt && new Date(checkData.expiresAt.toDate()) < new Date()) {
-                    throw new Error('Срок действия чека истек');
-                }
-                
-                // Обновляем чек
-                transaction.update(checkRef, {
-                    status: 'used',
-                    activatorId: currentUser.id,
-                    activatorName: currentUser.name,
-                    activatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Начисляем средства пользователю
-                const userRef = db.collection('users').doc(currentUser.id);
-                const userDoc = await transaction.get(userRef);
-                const currentBalance = userDoc.data().balance || 0;
-                const newBalance = currentBalance + checkData.amount;
-                
-                transaction.update(userRef, {
-                    balance: newBalance
-                });
-                
-                return {
-                    amount: checkData.amount,
-                    newBalance: newBalance
-                };
-            });
-            
-            // Добавляем транзакцию
-            await db.collection('transactions').add({
-                userId: currentUser.id,
-                type: 'check_activated',
-                amount: result.amount,
-                checkCode: checkCode,
-                description: `Активирован чек ${checkCode}`,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // Обновляем локальный баланс
-            userBalance = result.newBalance;
-            updateBalance();
-            
-            return {
-                success: true,
-                amount: result.amount
-            };
-            
-        } catch (error) {
-            console.error('Error activating check:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-    
-    // ОБРАБОТЧИК СОЗДАНИЯ ЧЕКА
+    // ============ ОБРАБОТЧИК СОЗДАНИЯ ЧЕКА ============
     document.getElementById('create-form')?.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -1891,14 +1900,9 @@
             const result = await createCheckFirebase(amount);
             
             if (result.success) {
-                // Показываем результат
                 document.getElementById('new-check-code').textContent = result.code;
                 document.getElementById('check-amount-display').textContent = amount.toFixed(2).replace('.', ',') + ' ₽';
                 document.getElementById('check-result').classList.remove('hidden');
-                
-                // Обновляем историю
-                await loadUserTransactions();
-                updateHistory();
                 
                 showNotification('Чек создан', `Чек на сумму ${amount} ₽ успешно создан`, 'success');
                 document.getElementById('check-amount').value = '';
@@ -1911,7 +1915,7 @@
         }
     });
     
-    // ОБРАБОТЧИК АКТИВАЦИИ ЧЕКА
+    // ============ ОБРАБОТЧИК АКТИВАЦИИ ЧЕКА ============
     document.getElementById('checkout-form')?.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -1931,10 +1935,6 @@
             const result = await activateCheckFirebase(checkCode);
             
             if (result.success) {
-                // Обновляем историю
-                await loadUserTransactions();
-                updateHistory();
-                
                 showNotification('Успешно!', `Чек на сумму ${result.amount} ₽ обналичен`, 'success');
                 document.getElementById('check-code').value = '';
             } else {
@@ -1946,7 +1946,6 @@
         }
     });
     
-    // Копирование кода чека
     function copyCheckCode() {
         const code = document.getElementById('new-check-code').textContent;
         navigator.clipboard.writeText(code).then(() => {
@@ -1954,7 +1953,7 @@
         });
     }
     
-    // ВЫВОД СРЕДСТВ
+    // ============ ВЫВОД СРЕДСТВ ============
     document.getElementById('withdraw-form')?.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -1995,15 +1994,8 @@
             const bankName = bank ? bank.name : 'выбранный банк';
             
             try {
-                // Обновляем баланс
-                userBalance -= amount;
-                await db.collection('users').doc(currentUser.id).update({
-                    balance: userBalance
-                });
-                
-                // Добавляем транзакцию
-                await db.collection('transactions').add({
-                    userId: currentUser.id,
+                // Добавляем транзакцию вывода
+                await addTransactionToFirebase({
                     type: 'withdrawal',
                     amount: -amount,
                     method: 'card',
@@ -2012,20 +2004,13 @@
                     fee: fee,
                     total: total,
                     status: 'processing',
-                    description: `Вывод на карту ${bankName}`,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    description: `Вывод на карту ${bankName}`
                 });
-                
-                // Обновляем историю
-                await loadUserTransactions();
-                updateHistory();
-                updateBalance();
                 
                 showNotification('Заявка принята', 
                     `Заявка на вывод ${amount.toFixed(2)} ₽ на карту ${bankName} принята. Средства поступят в течение 1-7 рабочих дней.`, 
                     'success');
                 
-                // Очищаем форму
                 document.getElementById('card-number').value = '';
                 document.getElementById('withdraw-amount').value = '';
                 updateWithdrawInfo();
@@ -2043,15 +2028,8 @@
             }
             
             try {
-                // Обновляем баланс
-                userBalance -= amount;
-                await db.collection('users').doc(currentUser.id).update({
-                    balance: userBalance
-                });
-                
-                // Добавляем транзакцию
-                await db.collection('transactions').add({
-                    userId: currentUser.id,
+                // Добавляем транзакцию вывода
+                await addTransactionToFirebase({
                     type: 'withdrawal',
                     amount: -amount,
                     method: 'yoomoney',
@@ -2059,20 +2037,13 @@
                     fee: fee,
                     total: total,
                     status: 'processing',
-                    description: `Вывод на ЮMoney`,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    description: `Вывод на ЮMoney`
                 });
-                
-                // Обновляем историю
-                await loadUserTransactions();
-                updateHistory();
-                updateBalance();
                 
                 showNotification('Заявка принята', 
                     `Заявка на вывод ${amount.toFixed(2)} ₽ на кошелек ЮMoney принята. Средства поступят в течение 1-3 рабочих дней.`, 
                     'success');
                 
-                // Очищаем форму
                 document.getElementById('yoomoney-account').value = '';
                 document.getElementById('withdraw-amount').value = '';
                 updateWithdrawInfo();
@@ -2083,38 +2054,19 @@
         }
     });
     
-    // Обновление истории
+    // ============ ОБНОВЛЕНИЕ ИСТОРИИ ============
     function updateHistory() {
         const historyList = document.getElementById('history-list');
         if (!historyList) return;
         
         historyList.innerHTML = '';
         
-        // Объединяем все операции
-        const allTransactions = [];
-        
-        // Добавляем чеки
-        checks.forEach(check => {
-            allTransactions.push({
-                ...check,
-                sortDate: new Date(check.timestamp?.toDate() || Date.now()),
-                isWithdraw: false
-            });
+        // Сортируем транзакции по дате (новые сверху)
+        const sortedTransactions = [...userTransactions].sort((a, b) => {
+            return new Date(b.timestamp) - new Date(a.timestamp);
         });
         
-        // Добавляем выводы
-        withdrawals.forEach(withdrawal => {
-            allTransactions.push({
-                ...withdrawal,
-                sortDate: new Date(withdrawal.timestamp?.toDate() || Date.now()),
-                isWithdraw: true
-            });
-        });
-        
-        // Сортируем
-        allTransactions.sort((a, b) => b.sortDate - a.sortDate);
-        
-        if (allTransactions.length === 0) {
+        if (sortedTransactions.length === 0) {
             historyList.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-file-invoice-dollar"></i>
@@ -2125,11 +2077,11 @@
             return;
         }
         
-        allTransactions.forEach(transaction => {
+        sortedTransactions.forEach(transaction => {
             const item = document.createElement('div');
             item.className = 'history-item';
             
-            if (transaction.isWithdraw) {
+            if (transaction.type === 'withdrawal') {
                 let methodInfo = '';
                 if (transaction.method === 'card') {
                     methodInfo = `${transaction.bank} •••• ${transaction.cardLast4 || '****'}`;
@@ -2148,7 +2100,7 @@
                     </div>
                     <div class="history-amount negative">-${transaction.amount?.toFixed(2) || '0.00'} ₽</div>
                 `;
-            } else {
+            } else if (transaction.type === 'check_created' || transaction.type === 'check_activated') {
                 const isReceived = transaction.type === 'check_activated';
                 const status = transaction.status === 'active' ? 'Активен' : 'Использован';
                 const statusClass = transaction.status === 'active' ? 'status-pending' : 'status-success';
@@ -2160,7 +2112,18 @@
                         <div class="history-status ${statusClass}">${status}</div>
                     </div>
                     <div class="history-amount ${isReceived ? 'positive' : 'negative'}">
-                        ${isReceived ? '+' : '-'}${transaction.amount?.toFixed(2) || '0.00'} ₽
+                        ${isReceived ? '+' : '-'}${Math.abs(transaction.amount)?.toFixed(2) || '0.00'} ₽
+                    </div>
+                `;
+            } else if (transaction.type === 'bonus') {
+                item.innerHTML = `
+                    <div class="history-info">
+                        <div class="history-title">${transaction.description}</div>
+                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
+                        <div class="history-status status-success">Бонус</div>
+                    </div>
+                    <div class="history-amount positive">
+                        +${transaction.amount?.toFixed(2) || '0.00'} ₽
                     </div>
                 `;
             }
@@ -2169,7 +2132,7 @@
         });
     }
     
-    // Обработчики событий
+    // ============ ОБРАБОТЧИКИ СОБЫТИЙ ============
     document.getElementById('card-number')?.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         value = value.replace(/(.{4})/g, '$1 ').trim();
@@ -2187,9 +2150,25 @@
         });
     });
     
-    // Инициализация при загрузке
-    document.addEventListener('DOMContentLoaded', function() {
-        initTelegram();
+    // ============ ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ============
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            tg.expand();
+            tg.enableClosingConfirmation();
+            initTheme();
+            
+            // Используем Firestore для инициализации пользователя
+            await initUserFirebase();
+            initBanks();
+            updateWithdrawInfo();
+            loadNews();
+            
+            document.getElementById('withdraw-amount').addEventListener('input', updateWithdrawInfo);
+            
+        } catch (error) {
+            console.error("Ошибка инициализации:", error);
+            showNotification('Ошибка', 'Не удалось инициализировать приложение', 'error');
+        }
         
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', function(e) {
@@ -2215,6 +2194,6 @@
             });
         }
     });
-</script>
+    </script>
 </body>
 </html>
