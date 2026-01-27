@@ -25,7 +25,7 @@
             --tg-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             --tg-input-bg: #FFFFFF;
             
-            /* Акцентные цвета (черно-белые) */
+            /* Акцентные цвета */
             --primary-black: #000000;
             --secondary-black: #333333;
             --primary-white: #FFFFFF;
@@ -34,6 +34,7 @@
             --error-color: #EF4444;
             --warning-color: #F59E0B;
             --info-color: #3B82F6;
+            --star-color: #FFD700;
             --radius-lg: 16px;
             --radius-md: 12px;
             --radius-sm: 8px;
@@ -130,6 +131,8 @@
             font-size: 20px;
             color: var(--tg-text-color);
             box-shadow: var(--tg-shadow);
+            min-width: 100px;
+            text-align: center;
         }
         
         /* Основной контент */
@@ -301,6 +304,11 @@
             border: 1px solid var(--tg-border-color);
         }
         
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+        
         /* Расчет стоимости */
         .calculation {
             background: var(--tg-secondary-bg-color);
@@ -338,7 +346,7 @@
             padding: 16px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             transition: transform 0.2s ease;
         }
         
@@ -355,6 +363,9 @@
             font-size: 16px;
             color: var(--tg-text-color);
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .history-subtitle {
@@ -365,6 +376,7 @@
         .history-amount {
             font-weight: 700;
             font-size: 18px;
+            text-align: right;
         }
         
         .history-amount.positive {
@@ -553,7 +565,7 @@
         }
         
         .star-icon {
-            color: #FFD700;
+            color: var(--star-color);
         }
         
         /* Калькулятор */
@@ -586,10 +598,17 @@
         }
         
         /* Админ панель */
+        .admin-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--tg-border-color);
+        }
+        
         .admin-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            min-width: 800px;
         }
         
         .admin-table th {
@@ -599,12 +618,14 @@
             border-bottom: 2px solid var(--tg-border-color);
             font-weight: 600;
             font-size: 14px;
+            white-space: nowrap;
         }
         
         .admin-table td {
             padding: 12px;
             border-bottom: 1px solid var(--tg-border-color);
             font-size: 14px;
+            vertical-align: top;
         }
         
         .admin-table tr:hover {
@@ -621,7 +642,7 @@
         
         .type-stars {
             background: rgba(255, 215, 0, 0.1);
-            color: #FFD700;
+            color: var(--star-color);
         }
         
         .type-topup {
@@ -637,6 +658,33 @@
             background: var(--tg-secondary-bg-color);
             border-radius: 4px;
             font-size: 12px;
+        }
+        
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--tg-secondary-bg-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--tg-text-color);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--tg-secondary-text-color);
         }
         
         /* Заглушка для пустой истории */
@@ -689,9 +737,8 @@
                 padding: 16px;
             }
             
-            .admin-table {
-                display: block;
-                overflow-x: auto;
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
         
@@ -703,6 +750,27 @@
         
         .fade-in {
             animation: fadeIn 0.3s ease forwards;
+        }
+        
+        /* Загрузка */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--tg-border-color);
+            border-top-color: var(--tg-button-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -864,7 +932,7 @@
                         <span>Stars</span>
                     </div>
                     <div style="text-align: center; margin-bottom: 20px; color: var(--tg-secondary-text-color);">
-                        На ваш баланс зачислено
+                        Баланс успешно пополнен Telegram Stars
                     </div>
                     <button class="btn btn-secondary" onclick="showTab('history')">
                         <i class="fas fa-history"></i>
@@ -941,7 +1009,7 @@
                     <span>История операций</span>
                 </div>
                 
-                <div id="history-list">
+                <div id="history-content">
                     <div class="empty-state">
                         <i class="fas fa-star"></i>
                         <p>История операций пуста</p>
@@ -955,35 +1023,50 @@
                 <div class="section-title">
                     <i class="fas fa-user-shield"></i>
                     <span>Админ панель</span>
+                    <span style="font-size: 12px; color: var(--tg-secondary-text-color); margin-left: auto;">
+                        Пользователь: <strong>@iwnel</strong>
+                    </span>
                 </div>
                 
-                <div class="mb-4" style="display: flex; gap: 8px;">
-                    <button class="btn btn-secondary" onclick="loadAdminTransactions('all')" style="flex: 1;">
+                <div class="mb-4" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="loadAdminTransactions('all')" style="flex: 1; min-width: 120px;">
                         Все транзакции
                     </button>
-                    <button class="btn btn-secondary" onclick="loadAdminTransactions('stars')" style="flex: 1;">
+                    <button class="btn btn-secondary" onclick="loadAdminTransactions('stars')" style="flex: 1; min-width: 120px;">
                         Покупки Stars
                     </button>
-                    <button class="btn btn-secondary" onclick="loadAdminTransactions('topup')" style="flex: 1;">
+                    <button class="btn btn-secondary" onclick="loadAdminTransactions('topup')" style="flex: 1; min-width: 120px;">
                         Пополнения
+                    </button>
+                    <button class="btn btn-success" onclick="loadAdminStats()" style="flex: 1; min-width: 120px;">
+                        <i class="fas fa-sync-alt"></i> Обновить
                     </button>
                 </div>
                 
-                <div id="admin-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-                    <div style="background: var(--tg-secondary-bg-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
-                        <div style="font-size: 24px; font-weight: 700; color: var(--tg-text-color);" id="total-users">0</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Всего пользователей</div>
+                <!-- Статистика -->
+                <div class="stats-grid" id="admin-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-users">0</div>
+                        <div class="stat-label">Всего пользователей</div>
                     </div>
-                    <div style="background: var(--tg-secondary-bg-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
-                        <div style="font-size: 24px; font-weight: 700; color: var(--tg-text-color);" id="total-transactions">0</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Всего транзакций</div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-transactions">0</div>
+                        <div class="stat-label">Всего транзакций</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-stars">0</div>
+                        <div class="stat-label">Продано Stars</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-revenue">0 ₽</div>
+                        <div class="stat-label">Общая выручка</div>
                     </div>
                 </div>
                 
+                <!-- Таблица транзакций -->
                 <div id="admin-transactions">
-                    <div class="empty-state">
-                        <i class="fas fa-database"></i>
-                        <p>Загрузка транзакций...</p>
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
                     </div>
                 </div>
             </div>
@@ -1075,6 +1158,7 @@
         console.log("Firebase инициализирован");
     } catch (error) {
         console.error("Ошибка инициализации Firebase:", error);
+        showNotification('Ошибка', 'Не удалось подключиться к базе данных', 'error');
     }
     
     // Глобальные переменные
@@ -1083,6 +1167,7 @@
     let userTransactions = [];
     const STAR_RATE = 1.1; // 1 Star = 1.1 RUB
     let currentTopupCard = '';
+    let isAdmin = false;
     
     // Инициализация пользователя
     async function initUserFirebase() {
@@ -1101,12 +1186,16 @@
                 username: tgUser.username || null
             };
             
+            // Проверка на администратора
+            isAdmin = currentUser.username === 'iwnel';
+            
             // Загрузка данных пользователя
             let userData = null;
             if (db) {
                 const userDoc = await db.collection('users').doc(userId).get();
                 if (userDoc.exists) {
                     userData = userDoc.data();
+                    console.log("Данные пользователя загружены из Firebase");
                 }
             }
             
@@ -1119,18 +1208,21 @@
                     ...currentUser,
                     balance: userBalance,
                     transactions: userTransactions,
-                    registrationDate: new Date().toISOString()
+                    registrationDate: new Date().toISOString(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
                 // Сохранение нового пользователя
                 await saveUserToFirestore(userId, userData);
+                showNotification('Добро пожаловать!', 'Вы успешно зарегистрированы в системе', 'success');
             } else {
                 // Существующий пользователь
                 userBalance = userData.balance || 0;
                 userTransactions = userData.transactions || [];
+                console.log("Баланс пользователя:", userBalance);
                 
-                // Проверка на администратора (iwnel)
-                if (currentUser.username === 'iwnel') {
+                // Проверка на администратора и добавление таба
+                if (isAdmin) {
                     addAdminTab();
                 }
             }
@@ -1140,15 +1232,26 @@
             
         } catch (error) {
             console.error("Ошибка инициализации:", error);
+            showNotification('Ошибка', 'Не удалось загрузить данные пользователя', 'error');
         }
     }
     
     // Добавление админ-таба
     function addAdminTab() {
         const tabsContainer = document.getElementById('main-tabs');
+        
+        // Проверяем, не добавлен ли уже админ-таб
+        if (document.querySelector('.tab[data-admin]')) {
+            return;
+        }
+        
         const adminTab = document.createElement('button');
         adminTab.className = 'tab';
-        adminTab.onclick = () => showTab('admin');
+        adminTab.setAttribute('data-admin', 'true');
+        adminTab.onclick = () => {
+            showTab('admin');
+            loadAdminStats();
+        };
         adminTab.innerHTML = '<i class="fas fa-user-shield"></i> Админ';
         tabsContainer.appendChild(adminTab);
     }
@@ -1161,11 +1264,12 @@
                 return;
             }
             
-            userData.updated = firebase.firestore.FieldValue.serverTimestamp();
+            userData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
             userData.lastUpdate = new Date().toISOString();
             
             await db.collection('users').doc(userId).set(userData, { merge: true });
             saveToLocalStorage(userId, userData);
+            console.log("Данные пользователя сохранены");
             
         } catch (error) {
             console.error("Ошибка сохранения:", error);
@@ -1194,7 +1298,7 @@
     
     // Добавление транзакции
     async function addTransaction(transaction) {
-        if (!currentUser) return;
+        if (!currentUser) return null;
         
         try {
             const userId = currentUser.id;
@@ -1221,7 +1325,8 @@
             }
             
             // Создание транзакции
-            transaction.id = 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const transactionId = 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            transaction.id = transactionId;
             transaction.timestamp = new Date().toISOString();
             transaction.date = new Date().toLocaleDateString('ru-RU');
             transaction.time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -1229,8 +1334,8 @@
             transaction.userName = currentUser.name;
             transaction.username = currentUser.username;
             
-            // Обновление баланса
-            if (transaction.amount) {
+            // Обновление баланса (для транзакций, которые влияют на баланс)
+            if (transaction.amount !== undefined) {
                 userBalance += transaction.amount;
                 userData.balance = userBalance;
             }
@@ -1242,7 +1347,11 @@
             
             // Сохранение в общую коллекцию транзакций
             if (db) {
-                await db.collection('all_transactions').doc(transaction.id).set(transaction);
+                await db.collection('all_transactions').doc(transactionId).set({
+                    ...transaction,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("Транзакция сохранена в all_transactions");
             }
             
             // Сохранение пользователя
@@ -1255,6 +1364,7 @@
             
         } catch (error) {
             console.error("Ошибка транзакции:", error);
+            showNotification('Ошибка', 'Не удалось сохранить транзакцию', 'error');
             return null;
         }
     }
@@ -1277,6 +1387,7 @@
                 stars: starsAmount,
                 cost: cost,
                 commission: commission,
+                total: total,
                 status: 'completed',
                 description: `Покупка ${starsAmount} Telegram Stars`
             });
@@ -1306,14 +1417,18 @@
             const cleanCardNumber = cardNumber.replace(/\s/g, '');
             
             if (cleanCardNumber.length < 16 || cleanCardNumber.length > 19 || !/^\d+$/.test(cleanCardNumber)) {
-                throw new Error('Неверный номер карты');
+                throw new Error('Неверный номер карты. Введите 16-19 цифр');
             }
+            
+            // Маскируем номер карты для безопасности
+            const maskedCard = '**** **** **** ' + cleanCardNumber.slice(-4);
             
             // Создание транзакции заявки на пополнение
             const transaction = await addTransaction({
                 type: 'topup_request',
                 amount: 0,
                 cardNumber: cleanCardNumber,
+                maskedCard: maskedCard,
                 status: 'pending',
                 description: `Заявка на пополнение баланса`
             });
@@ -1325,6 +1440,7 @@
                 success: true,
                 requestId: transaction.id,
                 cardNumber: cleanCardNumber,
+                maskedCard: maskedCard,
                 transaction: transaction
             };
             
@@ -1395,14 +1511,17 @@
     }
     
     function showTab(tabName) {
+        // Скрыть все вкладки
         document.querySelectorAll('.section.fade-in').forEach(section => {
             section.classList.add('hidden');
         });
         
+        // Убрать активный класс со всех табов
         document.querySelectorAll('.tab').forEach(tab => {
             tab.classList.remove('active');
         });
         
+        // Показать выбранную вкладку
         const targetTab = document.getElementById(`${tabName}-tab`);
         if (targetTab) {
             targetTab.classList.remove('hidden');
@@ -1412,24 +1531,20 @@
             }, 10);
         }
         
+        // Активировать соответствующий таб
         const tabButtons = document.querySelectorAll('.tab');
-        const tabNames = ['buy', 'topup', 'history', 'admin', 'about'];
-        const index = tabNames.indexOf(tabName);
-        if (index !== -1 && tabButtons[index]) {
-            tabButtons[index].classList.add('active');
-        } else {
-            // Поиск по тексту кнопки
-            tabButtons.forEach((tab, i) => {
-                if (tab.textContent.includes(tabName.charAt(0).toUpperCase() + tabName.slice(1))) {
-                    tab.classList.add('active');
-                }
-            });
-        }
+        tabButtons.forEach((tab, index) => {
+            const tabText = tab.textContent.toLowerCase();
+            if (tabText.includes(tabName) || (tabName === 'admin' && tab.hasAttribute('data-admin'))) {
+                tab.classList.add('active');
+            }
+        });
         
+        // Обновить контент вкладки
         if (tabName === 'history') {
             updateHistory();
-        } else if (tabName === 'admin') {
-            loadAdminTransactions('all');
+        } else if (tabName === 'admin' && isAdmin) {
+            loadAdminStats();
         }
     }
     
@@ -1452,16 +1567,16 @@
     // Расчет стоимости Stars
     function updateStarsCost() {
         const starsInput = document.getElementById('stars-amount');
-        const stars = parseInt(starsInput.value) || 0;
+        let stars = parseInt(starsInput.value) || 0;
         
-        if (stars < 10) {
+        if (isNaN(stars) || stars < 10) {
+            stars = 10;
             starsInput.value = 10;
-            return updateStarsCost();
         }
         
         if (stars > 100000) {
+            stars = 100000;
             starsInput.value = 100000;
-            return updateStarsCost();
         }
         
         const cost = stars * STAR_RATE;
@@ -1487,102 +1602,175 @@
     
     // Обновление истории
     function updateHistory() {
-        const historyList = document.getElementById('history-list');
-        if (!historyList) return;
+        const historyContainer = document.getElementById('history-content');
+        if (!historyContainer) return;
         
-        historyList.innerHTML = '';
-        
+        // Сортируем транзакции по дате (новые сверху)
         const sortedTransactions = [...userTransactions].sort((a, b) => {
-            return new Date(b.timestamp) - new Date(a.timestamp);
+            return new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
         });
         
         if (sortedTransactions.length === 0) {
-            historyList.innerHTML = `
+            historyContainer.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-star"></i>
                     <p>История операций пуста</p>
-                    <p class="text-muted mt-2">Купите свои первые Telegram Stars</p>
+                    <p style="color: var(--tg-secondary-text-color); margin-top: 8px;">Совершите первую операцию</p>
                 </div>
             `;
             return;
         }
         
+        let html = '<div class="history-list">';
+        
         sortedTransactions.forEach(transaction => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            
             if (transaction.type === 'stars_purchase') {
-                item.innerHTML = `
-                    <div class="history-info">
-                        <div class="history-title">Покупка Telegram Stars</div>
-                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
-                        <div class="history-status status-success">Успешно</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 14px; color: var(--tg-secondary-text-color); text-align: right; margin-bottom: 4px;">
-                            ${transaction.stars} ★
+                const totalCost = Math.abs(transaction.total || transaction.amount || 0);
+                html += `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-star" style="color: var(--star-color);"></i>
+                                Покупка Telegram Stars
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.stars || 0} Stars • ${totalCost.toFixed(2)} ₽
+                            </div>
+                            <div class="history-status status-success">
+                                Завершено
+                            </div>
                         </div>
                         <div class="history-amount negative">
-                            -${transaction.total?.toFixed(2) || '0.00'} ₽
+                            -${totalCost.toFixed(2)} ₽
                         </div>
                     </div>
                 `;
             } else if (transaction.type === 'topup_request') {
-                const maskedCard = transaction.cardNumber ? 
-                    `**** ${transaction.cardNumber.slice(-4)}` : '**** ****';
-                
-                item.innerHTML = `
-                    <div class="history-info">
-                        <div class="history-title">Заявка на пополнение</div>
-                        <div class="history-subtitle">${transaction.date} ${transaction.time} • ${maskedCard}</div>
-                        <div class="history-status status-pending">Ожидание оплаты</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color); margin-bottom: 4px;">
-                            ID: ${transaction.id.substring(0, 8)}
+                html += `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-credit-card"></i>
+                                Заявка на пополнение
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-subtitle">
+                                Карта: ${transaction.maskedCard || '**** **** **** ****'}
+                            </div>
+                            <div class="history-status status-pending">
+                                Ожидание оплаты
+                            </div>
                         </div>
-                        <div style="font-size: 16px; font-weight: 600; color: var(--warning-color);">
-                            Ожидает
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: var(--tg-secondary-text-color);">
+                                ID: ${transaction.id ? transaction.id.substring(0, 8) : 'N/A'}
+                            </div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--warning-color); margin-top: 4px;">
+                                Ожидает
+                            </div>
                         </div>
                     </div>
                 `;
             } else if (transaction.type === 'bonus') {
-                item.innerHTML = `
-                    <div class="history-info">
-                        <div class="history-title">${transaction.description}</div>
-                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
-                        <div class="history-status status-success">Бонус</div>
-                    </div>
-                    <div class="history-amount positive">
-                        +${transaction.amount?.toFixed(2) || '0.00'} ₽
+                html += `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-gift"></i>
+                                ${transaction.description || 'Бонус'}
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-status status-success">
+                                Бонус
+                            </div>
+                        </div>
+                        <div class="history-amount positive">
+                            +${Math.abs(transaction.amount || 0).toFixed(2)} ₽
+                        </div>
                     </div>
                 `;
             } else if (transaction.type === 'topup_completed') {
-                item.innerHTML = `
-                    <div class="history-info">
-                        <div class="history-title">Пополнение баланса</div>
-                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
-                        <div class="history-status status-success">Зачислено</div>
-                    </div>
-                    <div class="history-amount positive">
-                        +${transaction.amount?.toFixed(2) || '0.00'} ₽
+                html += `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-wallet"></i>
+                                Пополнение баланса
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-status status-success">
+                                Зачислено
+                            </div>
+                        </div>
+                        <div class="history-amount positive">
+                            +${Math.abs(transaction.amount || 0).toFixed(2)} ₽
+                        </div>
                     </div>
                 `;
             }
-            
-            historyList.appendChild(item);
         });
+        
+        html += '</div>';
+        historyContainer.innerHTML = html;
+    }
+    
+    // Загрузка статистики для админа
+    async function loadAdminStats() {
+        if (!isAdmin || !db) return;
+        
+        try {
+            // Загрузка статистики пользователей
+            const usersSnapshot = await db.collection('users').get();
+            const totalUsers = usersSnapshot.size;
+            document.getElementById('total-users').textContent = totalUsers;
+            
+            // Загрузка всех транзакций для статистики
+            const transactionsSnapshot = await db.collection('all_transactions').get();
+            const totalTransactions = transactionsSnapshot.size;
+            document.getElementById('total-transactions').textContent = totalTransactions;
+            
+            // Расчет статистики по Stars и выручке
+            let totalStars = 0;
+            let totalRevenue = 0;
+            
+            transactionsSnapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.type === 'stars_purchase') {
+                    totalStars += data.stars || 0;
+                    totalRevenue += Math.abs(data.total || data.amount || 0);
+                }
+            });
+            
+            document.getElementById('total-stars').textContent = totalStars.toLocaleString();
+            document.getElementById('total-revenue').textContent = totalRevenue.toFixed(2).replace('.', ',') + ' ₽';
+            
+            // Автоматическая загрузка транзакций
+            loadAdminTransactions('all');
+            
+        } catch (error) {
+            console.error('Ошибка загрузки статистики:', error);
+            showNotification('Ошибка', 'Не удалось загрузить статистику', 'error');
+        }
     }
     
     // Загрузка транзакций для админа
     async function loadAdminTransactions(filter = 'all') {
-        if (!db || currentUser?.username !== 'iwnel') return;
+        if (!isAdmin || !db) return;
         
         const transactionsContainer = document.getElementById('admin-transactions');
-        transactionsContainer.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Загрузка транзакций...</p></div>';
+        transactionsContainer.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
         
         try {
-            let query = db.collection('all_transactions').orderBy('timestamp', 'desc').limit(50);
+            let query = db.collection('all_transactions').orderBy('timestamp', 'desc').limit(100);
             
             if (filter === 'stars') {
                 query = query.where('type', '==', 'stars_purchase');
@@ -1597,100 +1785,101 @@
                 return;
             }
             
-            let html = '<table class="admin-table">';
-            html += `
-                <thead>
-                    <tr>
-                        <th>Дата</th>
-                        <th>Пользователь</th>
-                        <th>Тип</th>
-                        <th>Детали</th>
-                        <th>Сумма</th>
-                        <th>Статус</th>
-                    </tr>
-                </thead>
-                <tbody>
-            `;
-            
-            let totalStars = 0;
-            let totalRevenue = 0;
+            let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
+            html += '<th>Дата и время</th>';
+            html += '<th>Пользователь</th>';
+            html += '<th>Тип</th>';
+            html += '<th>Детали</th>';
+            html += '<th>Сумма</th>';
+            html += '<th>Статус</th>';
+            html += '</tr></thead><tbody>';
             
             snapshot.forEach(doc => {
                 const data = doc.data();
                 
                 // Форматирование даты
-                const date = new Date(data.timestamp);
-                const dateStr = date.toLocaleDateString('ru-RU');
-                const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                let dateStr = 'N/A';
+                let timeStr = '';
+                if (data.timestamp) {
+                    const date = new Date(data.timestamp);
+                    dateStr = date.toLocaleDateString('ru-RU');
+                    timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                } else if (data.date) {
+                    dateStr = data.date;
+                    timeStr = data.time || '';
+                }
                 
-                // Маскирование карты
+                // Информация о пользователе
+                const userName = data.userName || data.name || 'Неизвестно';
+                const username = data.username ? `@${data.username}` : '';
+                
+                // Тип транзакции
+                let typeBadge = '';
                 let details = '';
+                
                 if (data.type === 'stars_purchase') {
-                    details = `${data.stars} Stars`;
-                    totalStars += data.stars || 0;
-                    totalRevenue += Math.abs(data.amount) || 0;
+                    typeBadge = '<span class="transaction-type type-stars">Stars</span>';
+                    details = `${data.stars || 0} Stars<br><small>${(data.total || 0).toFixed(2)} ₽ (комиссия: ${(data.commission || 0).toFixed(2)} ₽)</small>`;
                 } else if (data.type === 'topup_request') {
-                    const maskedCard = data.cardNumber ? 
-                        `**** ${data.cardNumber.slice(-4)}` : '**** ****';
-                    details = `Карта: ${maskedCard}`;
+                    typeBadge = '<span class="transaction-type type-topup">Заявка</span>';
+                    const card = data.maskedCard || data.cardNumber ? 
+                        `**** **** **** ${(data.cardNumber || '').slice(-4)}` : '**** ****';
+                    details = `Карта: ${card}`;
                 } else if (data.type === 'topup_completed') {
-                    details = `Пополнение баланса`;
+                    typeBadge = '<span class="transaction-type type-topup">Пополнение</span>';
+                    details = 'Пополнение баланса';
+                } else {
+                    typeBadge = `<span>${data.type || 'Другое'}</span>`;
+                    details = data.description || '';
+                }
+                
+                // Сумма
+                let amount = '';
+                let amountColor = 'var(--tg-text-color)';
+                if (data.amount !== undefined) {
+                    if (data.amount < 0) {
+                        amount = `-${Math.abs(data.amount).toFixed(2)} ₽`;
+                        amountColor = 'var(--error-color)';
+                    } else if (data.amount > 0) {
+                        amount = `+${data.amount.toFixed(2)} ₽`;
+                        amountColor = 'var(--success-color)';
+                    } else {
+                        amount = '0.00 ₽';
+                    }
                 }
                 
                 // Статус
                 let statusBadge = '';
-                if (data.status === 'completed') {
+                if (data.status === 'completed' || data.status === 'success') {
                     statusBadge = '<span class="history-status status-success">Завершено</span>';
                 } else if (data.status === 'pending') {
                     statusBadge = '<span class="history-status status-pending">Ожидание</span>';
-                }
-                
-                // Тип транзакции
-                let typeBadge = '';
-                if (data.type === 'stars_purchase') {
-                    typeBadge = '<span class="transaction-type type-stars">Stars</span>';
-                } else if (data.type.includes('topup')) {
-                    typeBadge = '<span class="transaction-type type-topup">Пополнение</span>';
+                } else if (data.status === 'error' || data.status === 'failed') {
+                    statusBadge = '<span class="history-status status-error">Ошибка</span>';
+                } else {
+                    statusBadge = `<span>${data.status || 'N/A'}</span>`;
                 }
                 
                 html += `
                     <tr>
-                        <td>${dateStr}<br><small>${timeStr}</small></td>
                         <td>
-                            <div class="user-badge">
-                                <i class="fas fa-user"></i>
-                                ${data.userName || 'Пользователь'}
-                                ${data.username ? `<br><small>@${data.username}</small>` : ''}
-                            </div>
+                            <div>${dateStr}</div>
+                            <div style="font-size: 12px; color: var(--tg-secondary-text-color);">${timeStr}</div>
+                        </td>
+                        <td>
+                            <div>${userName}</div>
+                            <div style="font-size: 12px; color: var(--tg-secondary-text-color);">${username}</div>
+                            <div style="font-size: 11px; color: var(--tg-hint-color);">${data.userId ? data.userId.substring(0, 10) + '...' : ''}</div>
                         </td>
                         <td>${typeBadge}</td>
                         <td>${details}</td>
-                        <td style="font-weight: ${data.amount < 0 ? '600' : '400'}; color: ${data.amount < 0 ? 'var(--error-color)' : 'var(--success-color)'}">
-                            ${data.amount < 0 ? '-' : '+'}${Math.abs(data.amount || 0).toFixed(2)} ₽
-                        </td>
+                        <td style="font-weight: 600; color: ${amountColor};">${amount}</td>
                         <td>${statusBadge}</td>
                     </tr>
                 `;
             });
             
-            html += '</tbody></table>';
-            
-            // Статистика
-            html += `
-                <div style="margin-top: 20px; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 18px; font-weight: 700; color: var(--tg-text-color);">${totalStars}</div>
-                            <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Всего Stars продано</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 18px; font-weight: 700; color: var(--tg-text-color);">${totalRevenue.toFixed(2)} ₽</div>
-                            <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Общая выручка</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
+            html += '</tbody></table></div>';
             transactionsContainer.innerHTML = html;
             
         } catch (error) {
@@ -1701,14 +1890,19 @@
     
     // Редирект на оплату
     function redirectToPayment() {
-        const cardNumber = currentTopupCard;
+        if (!currentTopupCard) {
+            showNotification('Ошибка', 'Номер карты не указан', 'error');
+            return;
+        }
+        
         const userId = currentUser?.id || 'unknown';
         
         // Сохраняем информацию о редиректе
         localStorage.setItem('last_payment_attempt', JSON.stringify({
             userId: userId,
-            cardNumber: cardNumber,
-            timestamp: new Date().toISOString()
+            cardNumber: currentTopupCard,
+            timestamp: new Date().toISOString(),
+            requestId: `TP${Date.now().toString().slice(-6)}`
         }));
         
         // Открываем страницу оплаты
@@ -1722,21 +1916,26 @@
         document.getElementById('topup-form').style.display = 'none';
         document.getElementById('topup-request-id').textContent = `TP${Date.now().toString().slice(-6)}`;
         
-        showNotification('Заявка создана', 'Перейдите на страницу ЮMoney для оплаты', 'success');
+        showNotification('Заявка создана', 'Перейдите на страницу ЮMoney для оплаты. После оплаты администратор проверит и пополнит ваш баланс.', 'success');
     }
     
     // Проверка возврата с оплаты
     function checkPaymentReturn() {
         const lastPayment = localStorage.getItem('last_payment_attempt');
         if (lastPayment) {
-            const paymentData = JSON.parse(lastPayment);
-            const now = new Date();
-            const paymentTime = new Date(paymentData.timestamp);
-            const diffMinutes = (now - paymentTime) / (1000 * 60);
-            
-            // Если прошло меньше 5 минут с момента попытки оплаты
-            if (diffMinutes < 5) {
-                showNotification('Оплата', 'Заявка на пополнение была создана. После проверки администратором баланс будет пополнен.', 'info');
+            try {
+                const paymentData = JSON.parse(lastPayment);
+                const now = new Date();
+                const paymentTime = new Date(paymentData.timestamp);
+                const diffMinutes = (now - paymentTime) / (1000 * 60);
+                
+                // Если прошло меньше 10 минут с момента попытки оплаты
+                if (diffMinutes < 10) {
+                    showNotification('Заявка создана', `Заявка на пополнение №${paymentData.requestId} была создана. После проверки администратором баланс будет пополнен.`, 'info');
+                    localStorage.removeItem('last_payment_attempt');
+                }
+            } catch (e) {
+                console.error('Ошибка при проверке платежа:', e);
                 localStorage.removeItem('last_payment_attempt');
             }
         }
@@ -1752,17 +1951,41 @@
             await initUserFirebase();
             
             // Обновление стоимости при изменении количества Stars
-            document.getElementById('stars-amount').addEventListener('input', updateStarsCost);
-            updateStarsCost(); // Инициализация
+            const starsInput = document.getElementById('stars-amount');
+            if (starsInput) {
+                starsInput.addEventListener('input', updateStarsCost);
+                updateStarsCost(); // Инициализация
+            }
             
             // Проверка возврата с оплаты
             setTimeout(checkPaymentReturn, 1000);
             
             // Форматирование номера карты
-            document.getElementById('topup-card-number')?.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                value = value.replace(/(.{4})/g, '$1 ').trim();
-                e.target.value = value.substring(0, 19);
+            const cardInput = document.getElementById('topup-card-number');
+            if (cardInput) {
+                cardInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.replace(/(.{4})/g, '$1 ').trim();
+                    e.target.value = value.substring(0, 19);
+                });
+            }
+            
+            // Закрытие модальных окон по клику на фон
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeModal(this.id);
+                    }
+                });
+            });
+            
+            // Закрытие по Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.show').forEach(modal => {
+                        closeModal(modal.id);
+                    });
+                }
             });
             
         } catch (error) {
@@ -1788,6 +2011,15 @@
             return;
         }
         
+        const cost = stars * STAR_RATE;
+        const commission = cost * 0.015;
+        const total = cost + commission;
+        
+        if (total > userBalance) {
+            showNotification('Ошибка', `Недостаточно средств на балансе. Нужно: ${total.toFixed(2)} ₽, доступно: ${userBalance.toFixed(2)} ₽`, 'error');
+            return;
+        }
+        
         try {
             const result = await buyStars(stars);
             
@@ -1797,7 +2029,7 @@
                 document.getElementById('buy-result').classList.remove('hidden');
                 document.getElementById('buy-form').style.display = 'none';
                 
-                showNotification('Успешно!', `Куплено ${stars} Telegram Stars`, 'success');
+                showNotification('Успешно!', `Куплено ${stars} Telegram Stars за ${total.toFixed(2)} ₽`, 'success');
             } else {
                 showNotification('Ошибка', result.error, 'error');
             }
@@ -1830,7 +2062,7 @@
             if (result.success) {
                 // Показать модальное окно оплаты
                 document.getElementById('payment-card-number').textContent = 
-                    `**** **** **** ${cardNumber.slice(-4)}`;
+                    result.maskedCard || `**** **** **** ${cardNumber.slice(-4)}`;
                 openModal('paymentModal');
             } else {
                 showNotification('Ошибка', result.error, 'error');
@@ -1841,7 +2073,7 @@
         }
     });
     
-    // Вибрация при кликах
+    // Вибрация при кликах (если поддерживается)
     if (navigator.vibrate) {
         document.querySelectorAll('button, .tab, .calc-btn, .footer-link').forEach(element => {
             element.addEventListener('click', function() {
