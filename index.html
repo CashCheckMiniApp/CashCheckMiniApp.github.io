@@ -3,55 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CashCheck — Пространство для денежных переводов</title>
+    <title>StarPay — Покупка Telegram Stars</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <style>
-        /* CSS переменные для темной/светлой темы */
+        /* Монохромная черно-белая тема */
         :root {
-            /* Светлая тема по умолчанию */
             --tg-bg-color: #FFFFFF;
-            --tg-secondary-bg-color: #F8FAFC;
-            --tg-text-color: #1E293B;
-            --tg-secondary-text-color: #475569;
-            --tg-hint-color: #94A3B8;
-            --tg-link-color: #2D5BFF;
-            --tg-button-color: #2D5BFF;
+            --tg-secondary-bg-color: #F8F8F8;
+            --tg-text-color: #000000;
+            --tg-secondary-text-color: #666666;
+            --tg-hint-color: #999999;
+            --tg-link-color: #000000;
+            --tg-button-color: #000000;
             --tg-button-text-color: #FFFFFF;
-            --tg-border-color: #E2E8F0;
+            --tg-border-color: #E0E0E0;
             --tg-card-bg: #FFFFFF;
-            --tg-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --tg-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             --tg-input-bg: #FFFFFF;
             
-            /* Брендовые цвета (не меняются) */
-            --primary-blue: #2D5BFF;
-            --primary-purple: #7B61FF;
+            /* Акцентные цвета (черно-белые) */
+            --primary-black: #000000;
+            --secondary-black: #333333;
+            --primary-white: #FFFFFF;
+            --secondary-gray: #F0F0F0;
             --success-color: #10B981;
             --error-color: #EF4444;
             --warning-color: #F59E0B;
             --info-color: #3B82F6;
-            --radius-lg: 20px;
-            --radius-md: 16px;
-            --radius-sm: 12px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
         }
         
-        /* Темная тема */
         .theme-dark {
-            --tg-bg-color: #0F172A;
-            --tg-secondary-bg-color: #1E293B;
-            --tg-text-color: #F1F5F9;
-            --tg-secondary-text-color: #CBD5E1;
-            --tg-hint-color: #64748B;
-            --tg-link-color: #60A5FA;
-            --tg-button-color: #3B82F6;
-            --tg-button-text-color: #FFFFFF;
-            --tg-border-color: #334155;
-            --tg-card-bg: #1E293B;
-            --tg-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            --tg-input-bg: #334155;
+            --tg-bg-color: #000000;
+            --tg-secondary-bg-color: #1A1A1A;
+            --tg-text-color: #FFFFFF;
+            --tg-secondary-text-color: #CCCCCC;
+            --tg-hint-color: #888888;
+            --tg-link-color: #FFFFFF;
+            --tg-button-color: #FFFFFF;
+            --tg-button-text-color: #000000;
+            --tg-border-color: #333333;
+            --tg-card-bg: #1A1A1A;
+            --tg-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
+            --tg-input-bg: #2A2A2A;
         }
         
         * {
@@ -101,13 +101,18 @@
             width: 40px;
             height: 40px;
             border-radius: 12px;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
+            background: linear-gradient(135deg, var(--primary-black) 0%, var(--secondary-black) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
             font-size: 18px;
+        }
+        
+        .theme-dark .logo-icon {
+            background: linear-gradient(135deg, var(--primary-white) 0%, var(--secondary-gray) 100%);
+            color: black;
         }
         
         .user-info {
@@ -152,7 +157,7 @@
         }
         
         .section-title i {
-            color: var(--tg-link-color);
+            color: var(--tg-text-color);
             font-size: 22px;
         }
         
@@ -186,39 +191,34 @@
         
         .tab.active {
             background: var(--tg-card-bg);
-            color: var(--tg-link-color);
+            color: var(--tg-text-color);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         
-        /* Переключатель методов вывода */
-        .method-switcher {
-            display: flex;
-            gap: 8px;
+        .theme-dark .tab.active {
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Курс валют */
+        .rate-info {
             background: var(--tg-secondary-bg-color);
-            padding: 6px;
             border-radius: var(--radius-md);
+            padding: 16px;
             margin-bottom: 20px;
-        }
-        
-        .method-switch {
-            flex: 1;
-            padding: 14px 16px;
-            border: none;
-            background: transparent;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 15px;
-            color: var(--tg-secondary-text-color);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
             text-align: center;
-            transition: all 0.2s ease;
+            border: 1px solid var(--tg-border-color);
         }
         
-        .method-switch.active {
-            background: var(--tg-card-bg);
-            color: var(--tg-link-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        .rate-title {
+            font-size: 14px;
+            color: var(--tg-secondary-text-color);
+            margin-bottom: 8px;
+        }
+        
+        .rate-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--tg-text-color);
         }
         
         /* Формы */
@@ -248,8 +248,12 @@
         
         .form-input:focus {
             outline: none;
-            border-color: var(--tg-link-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            border-color: var(--tg-text-color);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-dark .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
         }
         
         .form-hint {
@@ -263,8 +267,8 @@
         .btn {
             width: 100%;
             padding: 18px;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
-            color: white;
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
             border: none;
             border-radius: var(--radius-md);
             font-family: 'Inter', sans-serif;
@@ -280,7 +284,11 @@
         
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(45, 91, 255, 0.25);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .theme-dark .btn:hover {
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
         }
         
         .btn:active {
@@ -291,6 +299,29 @@
             background: var(--tg-secondary-bg-color);
             color: var(--tg-text-color);
             border: 1px solid var(--tg-border-color);
+        }
+        
+        /* Расчет стоимости */
+        .calculation {
+            background: var(--tg-secondary-bg-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .calculation-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        
+        .calculation-row.total {
+            font-size: 18px;
+            font-weight: 700;
+            border-top: 1px solid var(--tg-border-color);
+            padding-top: 12px;
+            margin-top: 12px;
         }
         
         /* История операций */
@@ -365,104 +396,6 @@
         .status-error {
             background: rgba(239, 68, 68, 0.15);
             color: var(--error-color);
-        }
-        
-        /* Банки */
-        .bank-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 12px;
-        }
-        
-        .bank-option {
-            background: var(--tg-card-bg);
-            border: 2px solid var(--tg-border-color);
-            border-radius: var(--radius-md);
-            padding: 16px 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .bank-option.active {
-            border-color: var(--tg-link-color);
-            background: rgba(59, 130, 246, 0.05);
-        }
-        
-        .bank-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 16px;
-            color: white;
-        }
-        
-        .bank-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--tg-text-color);
-            text-align: center;
-        }
-        
-        /* Новости */
-        .news-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        
-        .news-item {
-            background: var(--tg-card-bg);
-            border: 1px solid var(--tg-border-color);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            transition: transform 0.2s ease;
-        }
-        
-        .news-item:hover {
-            transform: translateY(-2px);
-        }
-        
-        .news-date {
-            display: inline-block;
-            padding: 6px 12px;
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--tg-link-color);
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        
-        .news-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--tg-text-color);
-        }
-        
-        .news-content {
-            font-size: 15px;
-            color: var(--tg-secondary-text-color);
-            line-height: 1.6;
-        }
-        
-        .news-highlight {
-            border-left: 4px solid var(--success-color);
-            background: rgba(16, 185, 129, 0.05);
-        }
-        
-        .news-warning {
-            border-left: 4px solid var(--warning-color);
-            background: rgba(245, 158, 11, 0.05);
         }
         
         /* Уведомления */
@@ -549,8 +482,8 @@
         
         .modal-header {
             padding: 20px;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
-            color: white;
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -564,7 +497,7 @@
         .modal-close {
             background: rgba(255, 255, 255, 0.2);
             border: none;
-            color: white;
+            color: var(--tg-button-text-color);
             width: 36px;
             height: 36px;
             border-radius: 10px;
@@ -579,31 +512,6 @@
             padding: 20px;
             max-height: 60vh;
             overflow-y: auto;
-        }
-        
-        .document-content {
-            color: var(--tg-text-color);
-            line-height: 1.6;
-        }
-        
-        .document-content h3 {
-            margin: 20px 0 12px;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        
-        .document-content p {
-            margin-bottom: 16px;
-            font-size: 15px;
-        }
-        
-        .document-content ul {
-            margin: 12px 0 16px 20px;
-        }
-        
-        .document-content li {
-            margin-bottom: 8px;
-            font-size: 15px;
         }
         
         /* Футер */
@@ -634,189 +542,47 @@
             color: var(--tg-hint-color);
         }
         
-        /* Стили для предупреждений */
-        .warning-box {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid var(--warning-color);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        
-        .warning-box i {
-            color: var(--warning-color);
-            font-size: 20px;
-            margin-top: 2px;
-        }
-        
-        .warning-content h4 {
-            color: var(--warning-color);
-            font-weight: 700;
-            margin-bottom: 6px;
-            font-size: 16px;
-        }
-        
-        .warning-content p {
-            color: var(--tg-text-color);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        /* Стили для информации */
-        .info-box {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid var(--info-color);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        
-        .info-box i {
-            color: var(--info-color);
-            font-size: 20px;
-            margin-top: 2px;
-        }
-        
-        .info-content h4 {
-            color: var(--info-color);
-            font-weight: 700;
-            margin-bottom: 6px;
-            font-size: 16px;
-        }
-        
-        .info-content p {
-            color: var(--tg-text-color);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        /* Методы оплаты */
-        .payment-methods {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .payment-method {
-            background: var(--tg-card-bg);
-            border: 2px solid var(--tg-border-color);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .payment-method.active {
-            border-color: var(--tg-link-color);
-            background: rgba(59, 130, 246, 0.05);
-        }
-        
-        .payment-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-sm);
+        /* Звезды */
+        .stars-display {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 20px;
+            gap: 8px;
+            font-size: 24px;
+            margin-bottom: 20px;
         }
         
-        .payment-icon.card {
-            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+        .star-icon {
+            color: #FFD700;
         }
         
-        .payment-icon.yoomoney {
-            background: linear-gradient(135deg, #2D5BFF 0%, #7B61FF 100%);
+        /* Калькулятор */
+        .calculator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
         }
         
-        .payment-info {
-            flex: 1;
-        }
-        
-        .payment-name {
-            font-weight: 700;
+        .calc-btn {
+            padding: 12px;
+            background: var(--tg-secondary-bg-color);
+            border: 1px solid var(--tg-border-color);
+            border-radius: var(--radius-sm);
             font-size: 16px;
-            color: var(--tg-text-color);
-            margin-bottom: 4px;
-        }
-        
-        .payment-description {
-            font-size: 14px;
-            color: var(--tg-secondary-text-color);
-        }
-        
-        /* Блоки для разных методов вывода */
-        .withdraw-method-block {
-            display: none;
-        }
-        
-        .withdraw-method-block.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        /* Адаптивность */
-        @media (max-width: 480px) {
-            .container {
-                padding: 12px;
-            }
-            
-            .section {
-                padding: 16px;
-            }
-            
-            .tab {
-                padding: 10px 12px;
-                font-size: 13px;
-            }
-            
-            .bank-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .modal-body {
-                padding: 16px;
-            }
-            
-            .method-switch {
-                padding: 12px 14px;
-                font-size: 14px;
-            }
-        }
-        
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.3s ease forwards;
-        }
-        
-        /* Скрытые элементы */
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Специальные классы для текста */
-        .text-muted {
-            color: var(--tg-secondary-text-color) !important;
-        }
-        
-        .text-center {
+            font-weight: 600;
+            cursor: pointer;
             text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .calc-btn:hover {
+            background: var(--tg-border-color);
+        }
+        
+        .calc-btn.active {
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
         }
         
         /* Заглушка для пустой истории */
@@ -837,6 +603,11 @@
             font-size: 16px;
         }
         
+        /* Скрытые элементы */
+        .hidden {
+            display: none !important;
+        }
+        
         /* Утилиты отступов */
         .mt-2 { margin-top: 8px; }
         .mt-3 { margin-top: 12px; }
@@ -844,6 +615,36 @@
         .mb-2 { margin-bottom: 8px; }
         .mb-3 { margin-bottom: 12px; }
         .mb-4 { margin-bottom: 16px; }
+        
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+            
+            .section {
+                padding: 16px;
+            }
+            
+            .tab {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            
+            .modal-body {
+                padding: 16px;
+            }
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
     </style>
 </head>
 <body>
@@ -851,48 +652,29 @@
     <div id="agreementModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title">Документы</div>
+                <div class="modal-title">Пользовательское соглашение</div>
                 <button class="modal-close" onclick="closeModal('agreementModal')">×</button>
             </div>
             <div class="modal-body">
-                <div id="agreement-content" class="document-content">
-                    <h3>Пользовательское соглашение</h3>
+                <div class="document-content">
+                    <h3>Пользовательское соглашение StarPay</h3>
                     <p><strong>Дата вступления в силу:</strong> 1 января 2026 года</p>
                     
                     <h4>1. Общие положения</h4>
-                    <p>1.1. Настоящее Пользовательское соглашение регулирует отношения между сервисом CashCheck и пользователем по использованию Сервиса.</p>
-                    <p>1.2. Используя Сервис, вы подтверждаете свое согласие с условиями настоящего Соглашения.</p>
+                    <p>StarPay - сервис для покупки и обмена Telegram Stars.</p>
                     
-                    <h4>2. Описание Сервиса</h4>
-                    <p>CashCheck - это онлайн-сервис для создания и обналичивания денежных чеков, а также для осуществления денежных переводов между пользователями.</p>
+                    <h4>2. Курс обмена</h4>
+                    <p>1 Telegram Star = 1.1 RUB. Курс фиксированный и может изменяться с уведомлением пользователей.</p>
                     
-                    <h4>3. Регистрация и учетная запись</h4>
-                    <p>3.1. Для использования полного функционала Сервиса необходимо зарегистрироваться.</p>
-                    <p>3.2. Пользователь обязуется предоставлять точную информацию и не передавать свои учетные данные третьим лицам.</p>
+                    <h4>3. Покупка Stars</h4>
+                    <p>Минимальная покупка: 10 Stars. Максимальная покупка: 100,000 Stars.</p>
                     
-                    <h4>4. Правила использования</h4>
-                    <p>4.1. Пользователь соглашается использовать Сервис только в законных целях.</p>
-                    <p>4.2. Запрещается использовать Сервис для незаконных операций.</p>
+                    <h4>4. Комиссии</h4>
+                    <p>Комиссия за покупку: 1.5% от суммы.</p>
+                    <p>Срок обработки заявок: 1-7 рабочих дней.</p>
                     
-                    <h4>5. Финансовые операции</h4>
-                    <p>5.1. Все операции осуществляются в соответствии с законодательством.</p>
-                    <p>5.2. Комиссия за вывод средств: 1.5% от суммы.</p>
-                    <p>5.3. Минимальная сумма чека: 10 ₽, максимальная: 100 000 ₽.</p>
-                    <p>5.4. Минимальная сумма вывода: 100 ₽.</p>
-                    <p>5.5. Срок обработки заявок: 1-7 рабочих дней.</p>
-                    
-                    <h4>6. Безопасность и конфиденциальность</h4>
-                    <p>6.1. Сервис использует современные технологии шифрования для защиты данных.</p>
-                    <p>6.2. Сервис не передает персональные данные третьим лицам без согласия пользователя.</p>
-                    
-                    <h4>7. Ограничение ответственности</h4>
-                    <p>7.1. Сервис предоставляется "как есть". Администрация не гарантирует бесперебойную работу и не несет ответственность за денежный ущерб во время использования сервиса.</p>
-                    
-                    <h4>8. Изменения в Соглашении</h4>
-                    <p>8.1. Администрация оставляет за собой право вносить изменения в Соглашение.</p>
-                    
-                    <h4>9. Контакты</h4>
-                    <p>По всем вопросам обращайтесь: cashcheckru@mail.ru</p>
+                    <h4>5. Контакты</h4>
+                    <p>Поддержка: starpay@mail.ru</p>
                 </div>
             </div>
         </div>
@@ -900,7 +682,7 @@
     
     <!-- Уведомления -->
     <div id="notification" class="notification">
-        <div class="notification-icon" id="notification-icon">💸</div>
+        <div class="notification-icon" id="notification-icon">💫</div>
         <div class="notification-content">
             <div class="notification-title" id="notification-title">Уведомление</div>
             <p class="notification-text" id="notification-text">Текст уведомления</p>
@@ -912,8 +694,8 @@
         <!-- Шапка -->
         <div class="header">
             <div class="logo">
-                <div class="logo-icon">C$</div>
-                <span>CashCheck</span>
+                <div class="logo-icon">★</div>
+                <span>StarPay</span>
             </div>
             <div class="user-info">
                 <div class="balance" id="balance">0 ₽</div>
@@ -922,272 +704,148 @@
         
         <!-- Основной контент -->
         <div class="main-content">
+            <!-- Информация о курсе -->
+            <div class="rate-info">
+                <div class="rate-title">Курс Telegram Stars</div>
+                <div class="rate-value">1 STAR = 1.1 ₽</div>
+            </div>
+            
             <!-- Табы навигации -->
             <div class="tabs">
-                <button class="tab active" onclick="showTab('checkout')">Обналичить</button>
-                <button class="tab" onclick="showTab('create')">Создать</button>
-                <button class="tab" onclick="showTab('topup')">Пополнить</button>
-                <button class="tab" onclick="showTab('withdraw')">Вывод</button>
+                <button class="tab active" onclick="showTab('buy')">Купить Stars</button>
                 <button class="tab" onclick="showTab('history')">История</button>
-                <button class="tab" onclick="showTab('news')">Новости</button>
+                <button class="tab" onclick="showTab('about')">О сервисе</button>
             </div>
             
-            <!-- Обналичивание чека -->
-            <div id="checkout-tab" class="section fade-in">
+            <!-- Покупка Stars -->
+            <div id="buy-tab" class="section fade-in">
                 <div class="section-title">
-                    <i class="fas fa-money-check-alt"></i>
-                    <span>Обналичить чек</span>
+                    <i class="fas fa-star"></i>
+                    <span>Покупка Telegram Stars</span>
                 </div>
                 
-                <form id="checkout-form">
-                    <div class="form-group">
-                        <label class="form-label">Код чека</label>
-                        <input type="text" class="form-input" id="check-code" placeholder="Введите 10-значный код" maxlength="10" required>
-                        <span class="form-hint">Пример: X8F7G2H9K5</span>
-                    </div>
-                    <button type="submit" class="btn">
-                        <i class="fas fa-money-bill-wave"></i>
-                        Обналичить чек
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Создание чека -->
-            <div id="create-tab" class="section fade-in hidden">
-                <div class="section-title">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Создать чек</span>
+                <!-- Быстрый выбор -->
+                <div class="calculator">
+                    <div class="calc-btn" onclick="setStarsAmount(100)">100</div>
+                    <div class="calc-btn" onclick="setStarsAmount(500)">500</div>
+                    <div class="calc-btn" onclick="setStarsAmount(1000)">1000</div>
+                    <div class="calc-btn" onclick="setStarsAmount(5000)">5000</div>
                 </div>
                 
-                <form id="create-form">
+                <form id="buy-form">
                     <div class="form-group">
-                        <label class="form-label">Сумма чека</label>
-                        <input type="number" class="form-input" id="check-amount" placeholder="Например: 1000" min="10" max="100000" required>
-                        <span class="form-hint">Минимальная сумма: 10 ₽, максимальная: 100 000 ₽</span>
+                        <label class="form-label">Количество Stars</label>
+                        <input type="number" class="form-input" id="stars-amount" placeholder="Введите количество" min="10" max="100000" value="100" required>
+                        <span class="form-hint">Минимум: 10 Stars, максимум: 100,000 Stars</span>
                     </div>
+                    
+                    <!-- Расчет стоимости -->
+                    <div class="calculation">
+                        <div class="calculation-row">
+                            <span>Стоимость Stars:</span>
+                            <span id="stars-cost">110.00 ₽</span>
+                        </div>
+                        <div class="calculation-row">
+                            <span>Комиссия (1.5%):</span>
+                            <span id="commission">1.65 ₽</span>
+                        </div>
+                        <div class="calculation-row total">
+                            <span>Итого к оплате:</span>
+                            <span id="total-cost">111.65 ₽</span>
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="btn">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        Создать чек
+                        <i class="fas fa-shopping-cart"></i>
+                        Купить Stars
                     </button>
                 </form>
                 
-                <!-- Результат создания чека -->
-                <div id="check-result" class="section mt-4 hidden">
+                <!-- Результат покупки -->
+                <div id="buy-result" class="section mt-4 hidden">
                     <div class="section-title">
                         <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
-                        <span>Чек создан</span>
+                        <span>Stars куплены!</span>
                     </div>
-                    <div class="text-center">
-                        <div style="font-size: 14px; color: var(--tg-secondary-text-color); margin-bottom: 12px;">
-                            Передайте этот код получателю:
-                        </div>
-                        <div style="background: var(--tg-secondary-bg-color); padding: 20px; border-radius: var(--radius-md); font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: 2px; margin-bottom: 16px;">
-                            <span id="new-check-code">A1B2C3D4E5</span>
-                        </div>
-                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">
-                            Сумма: <span id="check-amount-display" style="color: var(--tg-link-color);">1000 ₽</span>
-                        </div>
-                        <button class="btn btn-secondary" onclick="copyCheckCode()">
-                            <i class="fas fa-copy"></i>
-                            Скопировать код
-                        </button>
+                    <div class="stars-display">
+                        <i class="fas fa-star star-icon"></i>
+                        <span id="purchased-stars">100</span>
+                        <span>Stars</span>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Пополнение баланса -->
-            <div id="topup-tab" class="section fade-in hidden">
-                <div class="section-title">
-                    <i class="fas fa-wallet"></i>
-                    <span>Пополнение баланса</span>
-                </div>
-                
-                <!-- Предупреждение о временных ограничениях -->
-                <div class="warning-box">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <div class="warning-content">
-                        <h4>Внимание! Временные ограничения</h4>
-                        <p>Пополнение баланса через банковские карты и ЮMoney временно недоступно. Пожалуйста, попробуйте позже.</p>
+                    <div style="text-align: center; margin-bottom: 20px; color: var(--tg-secondary-text-color);">
+                        На ваш баланс зачислено
                     </div>
-                </div>
-                
-                <!-- Информация о пополнении через поддержку -->
-                <div class="info-box">
-                    <i class="fas fa-info-circle"></i>
-                    <div class="info-content">
-                        <h4>Пополнение через поддержку</h4>
-                        <p>Вы можете пополнить баланс, связавшись с нашей поддержкой по адресу: cashcheckru@mail.ru</p>
-                    </div>
-                </div>
-                
-                <!-- Выбор метода оплаты -->
-                <div class="form-group">
-                    <label class="form-label">Способ оплаты</label>
-                    <div class="payment-methods">
-                        <div class="payment-method" onclick="selectPaymentMethod('card')">
-                            <div class="payment-icon card">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                            <div class="payment-info">
-                                <div class="payment-name">Банковская карта</div>
-                                <div class="payment-description">Visa, Mastercard, МИР</div>
-                            </div>
-                        </div>
-                        
-                        <div class="payment-method" onclick="selectPaymentMethod('yoomoney')">
-                            <div class="payment-icon yoomoney">
-                                <i class="fas fa-money-bill-wave"></i>
-                            </div>
-                            <div class="payment-info">
-                                <div class="payment-name">ЮMoney</div>
-                                <div class="payment-description">Кошелек ЮMoney</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Форма пополнения -->
-                <form id="topup-form">
-                    <div class="form-group">
-                        <label class="form-label">Сумма пополнения</label>
-                        <input type="number" class="form-input" id="topup-amount" placeholder="Например: 5000" min="10" max="100000" disabled>
-                        <span class="form-hint">Минимальная сумма: 10 ₽, максимальная: 100 000 ₽</span>
-                    </div>
-                    
-                    <button type="submit" class="btn" disabled>
-                        <i class="fas fa-credit-card"></i>
-                        Пополнение временно недоступно
+                    <button class="btn btn-secondary" onclick="showTab('history')">
+                        <i class="fas fa-history"></i>
+                        Посмотреть историю
                     </button>
-                </form>
-            </div>
-            
-            <!-- Вывод средств -->
-            <div id="withdraw-tab" class="section fade-in hidden">
-                <div class="section-title">
-                    <i class="fas fa-money-bill-transfer"></i>
-                    <span>Вывод средств</span>
                 </div>
-                
-                <!-- Комиссия -->
-                <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning-color); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 20px;">
-                    <div style="font-weight: 600; color: var(--warning-color);">Комиссия за вывод: 1.5%</div>
-                    <div style="font-size: 14px; color: var(--tg-secondary-text-color); margin-top: 4px;">
-                        <div>Срок зачисления:</div>
-                        <div>• На карту: 1-7 рабочих дней</div>
-                        <div>• На ЮMoney: 1-3 рабочих дня</div>
-                    </div>
-                </div>
-                
-                <!-- Переключатель метода вывода -->
-                <div class="method-switcher">
-                    <button class="method-switch active" onclick="selectWithdrawMethod('card')">На карту</button>
-                    <button class="method-switch" onclick="selectWithdrawMethod('yoomoney')">На ЮMoney</button>
-                </div>
-                
-                <!-- Блок для вывода на карту -->
-                <div id="card-withdraw-block" class="withdraw-method-block active">
-                    <!-- Выбор банка -->
-                    <div class="form-group">
-                        <label class="form-label">Выберите банк</label>
-                        <div class="bank-grid" id="bank-grid">
-                            <!-- Банки будут добавлены через JS -->
-                        </div>
-                    </div>
-                    
-                    <!-- Форма для карты -->
-                    <div class="form-group">
-                        <label class="form-label">Номер карты</label>
-                        <input type="text" class="form-input" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
-                        <span class="form-hint">Введите 16-19 цифр номера карты</span>
-                    </div>
-                </div>
-                
-                <!-- Блок для вывода на ЮMoney -->
-                <div id="yoomoney-withdraw-block" class="withdraw-method-block">
-                    <div class="form-group">
-                        <label class="form-label">Номер кошелька ЮMoney</label>
-                        <input type="text" class="form-input" id="yoomoney-account" placeholder="4100123456789012" maxlength="20">
-                        <span class="form-hint">Введите 13-20 цифр номера кошелька ЮMoney</span>
-                    </div>
-                </div>
-                
-                <!-- Форма вывода -->
-                <form id="withdraw-form">
-                    <div class="form-group">
-                        <label class="form-label">Сумма вывода</label>
-                        <input type="number" class="form-input" id="withdraw-amount" placeholder="Например: 5000" min="100" max="100000" required>
-                        <span class="form-hint">Минимальная сумма: 100 ₽</span>
-                        <div style="margin-top: 8px; font-size: 14px; color: var(--tg-secondary-text-color);" id="withdraw-info">
-                            Комиссия: 0 ₽ • К получению: 0 ₽
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn" id="withdraw-button">
-                        <i class="fas fa-wallet"></i>
-                        Вывести на карту
-                    </button>
-                </form>
             </div>
             
             <!-- История операций -->
             <div id="history-tab" class="section fade-in hidden">
                 <div class="section-title">
                     <i class="fas fa-history"></i>
-                    <span>История операций</span>
+                    <span>История покупок</span>
                 </div>
                 
                 <div id="history-list">
                     <div class="empty-state">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <p>История операций пуста</p>
-                        <p class="text-muted mt-2">Совершите первую операцию</p>
+                        <i class="fas fa-star"></i>
+                        <p>История покупок пуста</p>
+                        <p class="text-muted mt-2">Купите свои первые Telegram Stars</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Новости -->
-            <div id="news-tab" class="section fade-in hidden">
+            <!-- О сервисе -->
+            <div id="about-tab" class="section fade-in hidden">
                 <div class="section-title">
-                    <i class="fas fa-newspaper"></i>
-                    <span>Новости CashCheck</span>
+                    <i class="fas fa-info-circle"></i>
+                    <span>О сервисе StarPay</span>
                 </div>
                 
-                <div class="news-list" id="news-list">
-                    <!-- Новости будут добавлены через JS -->
-                </div>
-            </div>
-            
-            <!-- Информация о системе -->
-            <div class="section">
-                <div class="section-title">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Безопасность системы</span>
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 12px; font-size: 18px;">Что такое Telegram Stars?</h4>
+                    <p style="color: var(--tg-secondary-text-color); margin-bottom: 16px;">
+                        Telegram Stars — это внутренняя валюта Telegram, которую можно использовать для покупки цифровых товаров, поддержки авторов и оплаты услуг в ботовых приложениях.
+                    </p>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
                     <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
-                        <i class="fas fa-lock" style="font-size: 24px; color: var(--tg-link-color); margin-bottom: 8px;"></i>
-                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Защита</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Шифрование данных</div>
+                        <i class="fas fa-bolt" style="font-size: 24px; color: var(--tg-text-color); margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Мгновенно</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Мгновенное зачисление</div>
                     </div>
                     
                     <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
-                        <i class="fas fa-bolt" style="font-size: 24px; color: var(--tg-link-color); margin-bottom: 8px;"></i>
-                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Скорость</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Мгновенные переводы</div>
+                        <i class="fas fa-shield-alt" style="font-size: 24px; color: var(--tg-text-color); margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Безопасно</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Защита транзакций</div>
                     </div>
                     
                     <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
-                        <i class="fas fa-user-secret" style="font-size: 24px; color: var(--tg-link-color); margin-bottom: 8px;"></i>
-                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Анонимность</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Конфиденциальность</div>
+                        <i class="fas fa-percent" style="font-size: 24px; color: var(--tg-text-color); margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Низкая комиссия</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Всего 1.5%</div>
                     </div>
                     
                     <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
-                        <i class="fas fa-clock" style="font-size: 24px; color: var(--tg-link-color); margin-bottom: 8px;"></i>
-                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Доступность</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">24/7 работа</div>
+                        <i class="fas fa-headset" style="font-size: 24px; color: var(--tg-text-color); margin-bottom: 8px;"></i>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Поддержка</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">24/7 поддержка</div>
                     </div>
+                </div>
+                
+                <div style="background: var(--tg-secondary-bg-color); border-radius: var(--radius-md); padding: 16px;">
+                    <h4 style="margin-bottom: 12px; font-size: 16px;">Как использовать Stars?</h4>
+                    <ul style="color: var(--tg-secondary-text-color); padding-left: 20px;">
+                        <li style="margin-bottom: 8px;">Покупка цифровых товаров</li>
+                        <li style="margin-bottom: 8px;">Поддержка авторов каналов</li>
+                        <li style="margin-bottom: 8px;">Оплата услуг в ботах</li>
+                        <li>Покупка премиум-подписок</li>
+                    </ul>
                 </div>
             </div>
             
@@ -1195,11 +853,11 @@
             <div class="footer">
                 <div class="footer-links">
                     <a href="#" class="footer-link" onclick="openModal('agreementModal'); return false;">Соглашение</a>
-                    <a href="#" class="footer-link" onclick="showNotification('Поддержка', 'Для связи: cashcheckru@mail.ru', 'info'); return false;">Поддержка</a>
-                    <a href="#" class="footer-link" onclick="showTab('news'); return false;">Новости</a>
+                    <a href="#" class="footer-link" onclick="showNotification('Поддержка', 'По всем вопросам: starpay@mail.ru', 'info'); return false;">Поддержка</a>
+                    <a href="#" class="footer-link" onclick="showTab('about'); return false;">О сервисе</a>
                 </div>
                 <div class="footer-text">
-                    © 2025 CashCheck. Все права защищены.
+                    © 2025 StarPay. Неофициальный сервис для покупки Telegram Stars
                 </div>
             </div>
         </div>
@@ -1209,7 +867,7 @@
     // Telegram WebApp API
     let tg = window.Telegram.WebApp;
     
-    // ============ FIREBASE КОНФИГУРАЦИЯ ============
+    // Firebase конфигурация
     const firebaseConfig = {
         apiKey: "AIzaSyBaxoVYKmWtLgmTcM0AS5acQ1TN8qKyFfA",
         authDomain: "cashcheck-7e5c6.firebaseapp.com",
@@ -1233,99 +891,9 @@
     let currentUser = null;
     let userBalance = 0;
     let userTransactions = [];
-    let selectedBank = null;
-    let selectedPaymentMethod = 'card';
-    let selectedWithdrawMethod = 'card';
+    const STAR_RATE = 1.1; // 1 Star = 1.1 RUB
     
-    // Список банков
-    const RUSSIAN_BANKS = [
-        { id: 'sber', name: 'Сбер', color: '#21A038' },
-        { id: 'vtb', name: 'ВТБ', color: '#1946A0' },
-        { id: 'tinkoff', name: 'Тинькофф', color: '#FFDD2D', textColor: '#000000' },
-        { id: 'alfa', name: 'Альфа', color: '#EF3124' },
-        { id: 'raiffeisen', name: 'Райффайзен', color: '#FFCD00', textColor: '#000000' },
-        { id: 'gazprom', name: 'Газпром', color: '#2D5BFF' },
-        { id: 'rosbank', name: 'Росбанк', color: '#004C97' },
-        { id: 'mts', name: 'МТС', color: '#E30613' },
-        { id: 'post', name: 'Озон банк', color: '#004F9F' }
-    ];
-    
-    // Новости
-    const NEWS = [
-        {
-            id: 1,
-            date: '7 января 2026',
-            title: 'Интеграция с Firebase!',
-            content: 'Теперь чеки работают через Firebase! Вы можете создавать и активировать чеки, которые будут доступны всем пользователям системы.',
-            type: 'info'
-        },
-        {
-            id: 2,
-            date: '6 января 2026',
-            title: 'Внимание: временные ограничения на пополнение!',
-            content: 'В связи с техническими работами пополнение баланса через банковские карты и ЮMoney временно недоступно.',
-            type: 'warning'
-        },
-        {
-            id: 3,
-            date: '31 декабря 2025',
-            title: 'Новый год - новые возможности!',
-            content: 'С наступающим Новым годом! В честь праздника мы сделали особый чек на 400р с неограниченным количеством активаций. Код чека: <strong>HAPPY2026</strong>.',
-            type: 'highlight'
-        }
-    ];
-    
-    // ============ СОХРАНЕНИЕ В FIRESTORE ============
-    
-    // Сохранение в localStorage (резервное)
-    function saveToLocalStorage(userId, data) {
-        try {
-            localStorage.setItem(`user_${userId}`, JSON.stringify(data));
-        } catch (e) {
-            console.error("Ошибка сохранения в localStorage:", e);
-        }
-    }
-    
-    // Загрузка из localStorage (резервное)
-    function loadFromLocalStorage(userId) {
-        try {
-            const data = localStorage.getItem(`user_${userId}`);
-            return data ? JSON.parse(data) : null;
-        } catch (e) {
-            console.error("Ошибка загрузки из localStorage:", e);
-            return null;
-        }
-    }
-    
-    // Сохранение пользователя в Firestore
-    async function saveUserToFirestore(userId, userData) {
-        try {
-            if (!db) {
-                console.warn("Firestore недоступен, сохраняем в localStorage");
-                saveToLocalStorage(userId, userData);
-                return;
-            }
-            
-            // Подготавливаем данные для Firestore
-            const firestoreData = { ...userData };
-            
-            // Обновляем timestamp
-            firestoreData.updated = firebase.firestore.FieldValue.serverTimestamp();
-            firestoreData.lastUpdate = new Date().toISOString();
-            
-            await db.collection('users').doc(userId).set(firestoreData, { merge: true });
-            console.log("Данные сохранены в Firestore для:", userId);
-            
-            // Также сохраняем копию в localStorage для быстрого доступа
-            saveToLocalStorage(userId, userData);
-            
-        } catch (error) {
-            console.error("Ошибка сохранения в Firestore:", error);
-            saveToLocalStorage(userId, userData);
-        }
-    }
-    
-    // ============ ИНИЦИАЛИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ С FIRESTORE ============
+    // Инициализация пользователя
     async function initUserFirebase() {
         try {
             const tgUser = tg.initDataUnsafe?.user;
@@ -1335,8 +903,6 @@
             }
             
             const userId = `tg_${tgUser.id}`;
-            
-            // Создаем объект пользователя
             currentUser = {
                 id: userId,
                 name: tgUser.first_name || 'Пользователь',
@@ -1344,133 +910,7 @@
                 username: tgUser.username || null
             };
             
-            console.log("Загружаем данные для пользователя:", userId);
-            
-            // Пробуем загрузить из Firestore
-            let userData = null;
-            try {
-                if (db) {
-                    const userDoc = await db.collection('users').doc(userId).get();
-                    if (userDoc.exists) {
-                        userData = userDoc.data();
-                        console.log("Данные загружены из Firestore");
-                    }
-                }
-            } catch (firestoreError) {
-                console.warn("Ошибка Firestore, пробуем localStorage:", firestoreError);
-            }
-            
-            // Если не нашли в Firestore, пробуем localStorage
-            if (!userData) {
-                userData = loadFromLocalStorage(userId);
-                if (userData) {
-                    console.log("Данные загружены из localStorage");
-                }
-            }
-            
-            // Если данных нет вообще - новый пользователь
-            if (!userData) {
-                console.log("Новый пользователь, создаем запись");
-                
-                // Для пользователя iwnel - начальный баланс 1500, для остальных - 0
-                userBalance = (currentUser.username === 'iwnel') ? 1500 : 0;
-                userTransactions = [];
-                
-                userData = {
-                    ...currentUser,
-                    balance: userBalance,
-                    transactions: userTransactions,
-                    registrationDate: new Date().toISOString(),
-                    lastLogin: new Date().toISOString()
-                };
-                
-                // Бонус для iwnel
-                if (currentUser.username === 'iwnel') {
-                    userData.lastBonusDate = new Date().toDateString();
-                    userData.lastBonusTime = new Date().toISOString();
-                    
-                    const bonusTransaction = {
-                        id: 'bonus_' + Date.now(),
-                        type: 'bonus',
-                        amount: 1500,
-                        description: 'Специальный бонус',
-                        timestamp: new Date().toISOString(),
-                        date: new Date().toLocaleDateString('ru-RU'),
-                        time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-                    };
-                    
-                    userTransactions.push(bonusTransaction);
-                    userData.transactions = userTransactions;
-                    
-                    showNotification('Специальный бонус', 'Вам начислено 1500 ₽', 'success');
-                }
-                
-                // Сохраняем нового пользователя
-                await saveUserToFirestore(userId, userData);
-                
-            } else {
-                // Существующий пользователь
-                userBalance = userData.balance || 0;
-                userTransactions = userData.transactions || [];
-                
-                console.log("Пользователь существует, баланс:", userBalance);
-                
-                // Обновляем время последнего входа
-                userData.lastLogin = new Date().toISOString();
-                
-                // Проверяем ежедневный бонус для iwnel
-                if (currentUser.username === 'iwnel') {
-                    const now = new Date();
-                    const today = now.toDateString();
-                    const lastBonusDate = userData.lastBonusDate || null;
-                    
-                    if (!lastBonusDate || lastBonusDate !== today) {
-                        userBalance += 1500;
-                        userData.balance = userBalance;
-                        userData.lastBonusDate = today;
-                        userData.lastBonusTime = now.toISOString();
-                        
-                        const bonusTransaction = {
-                            id: 'bonus_' + Date.now(),
-                            type: 'bonus',
-                            amount: 1500,
-                            description: 'Ежедневный бонус',
-                            timestamp: new Date().toISOString(),
-                            date: new Date().toLocaleDateString('ru-RU'),
-                            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-                        };
-                        
-                        userTransactions.push(bonusTransaction);
-                        userData.transactions = userTransactions;
-                        
-                        showNotification('Ежедневный бонус', 'Вам начислено 1500 ₽', 'success');
-                    }
-                }
-                
-                // Сохраняем обновленные данные
-                await saveUserToFirestore(userId, userData);
-            }
-            
-            updateBalance();
-            updateHistory();
-            
-        } catch (error) {
-            console.error("Критическая ошибка инициализации:", error);
-            showNotification('Ошибка', 'Не удалось загрузить данные', 'error');
-        }
-    }
-    
-    // ============ ДОБАВЛЕНИЕ ТРАНЗАКЦИИ В FIRESTORE ============
-    async function addTransactionToFirebase(transaction) {
-        if (!currentUser) {
-            showNotification('Ошибка', 'Пользователь не авторизован', 'error');
-            return;
-        }
-        
-        try {
-            const userId = currentUser.id;
-            
-            // Получаем текущие данные пользователя
+            // Загрузка данных пользователя
             let userData = null;
             if (db) {
                 const userDoc = await db.collection('users').doc(userId).get();
@@ -1479,12 +919,82 @@
                 }
             }
             
-            // Если не удалось загрузить из Firestore, пробуем localStorage
+            // Если пользователь новый
+            if (!userData) {
+                userBalance = 0;
+                userTransactions = [];
+                
+                userData = {
+                    ...currentUser,
+                    balance: userBalance,
+                    transactions: userTransactions,
+                    registrationDate: new Date().toISOString()
+                };
+                
+                // Сохранение нового пользователя
+                await saveUserToFirestore(userId, userData);
+            } else {
+                // Существующий пользователь
+                userBalance = userData.balance || 0;
+                userTransactions = userData.transactions || [];
+            }
+            
+            updateBalance();
+            updateHistory();
+            
+        } catch (error) {
+            console.error("Ошибка инициализации:", error);
+        }
+    }
+    
+    // Сохранение пользователя
+    async function saveUserToFirestore(userId, userData) {
+        try {
+            if (!db) {
+                saveToLocalStorage(userId, userData);
+                return;
+            }
+            
+            userData.updated = firebase.firestore.FieldValue.serverTimestamp();
+            userData.lastUpdate = new Date().toISOString();
+            
+            await db.collection('users').doc(userId).set(userData, { merge: true });
+            saveToLocalStorage(userId, userData);
+            
+        } catch (error) {
+            console.error("Ошибка сохранения:", error);
+            saveToLocalStorage(userId, userData);
+        }
+    }
+    
+    // LocalStorage (резерв)
+    function saveToLocalStorage(userId, data) {
+        try {
+            localStorage.setItem(`user_${userId}`, JSON.stringify(data));
+        } catch (e) {
+            console.error("Ошибка localStorage:", e);
+        }
+    }
+    
+    // Добавление транзакции
+    async function addTransaction(transaction) {
+        if (!currentUser) return;
+        
+        try {
+            const userId = currentUser.id;
+            let userData = null;
+            
+            if (db) {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    userData = userDoc.data();
+                }
+            }
+            
             if (!userData) {
                 userData = loadFromLocalStorage(userId);
             }
             
-            // Если всё равно нет данных, создаем новую структуру
             if (!userData) {
                 userData = {
                     ...currentUser,
@@ -1494,80 +1004,66 @@
                 };
             }
             
-            // Подготавливаем транзакцию
-            transaction.id = 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            // Создание транзакции
+            transaction.id = 'tx_' + Date.now();
             transaction.timestamp = new Date().toISOString();
             transaction.date = new Date().toLocaleDateString('ru-RU');
             transaction.time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             
-            // Обновляем баланс
+            // Обновление баланса
             if (transaction.amount) {
                 userBalance += transaction.amount;
                 userData.balance = userBalance;
             }
             
-            // Добавляем транзакцию в историю
+            // Добавление в историю
             userData.transactions = userData.transactions || [];
             userData.transactions.push(transaction);
             userTransactions = userData.transactions;
             
-            // Сохраняем обновленные данные
+            // Сохранение
             await saveUserToFirestore(userId, userData);
             
-            // Обновляем интерфейс
             updateBalance();
             updateHistory();
             
-            console.log("Транзакция добавлена:", transaction.type);
-            
         } catch (error) {
-            console.error("Ошибка добавления транзакции:", error);
-            showNotification('Ошибка', 'Не удалось сохранить транзакцию', 'error');
+            console.error("Ошибка транзакции:", error);
         }
     }
     
-    // ============ РАБОТА С ЧЕКАМИ ЧЕРЕЗ FIREBASE ============
-    // Создание чека
-    async function createCheckFirebase(amount) {
+    // Покупка Stars
+    async function buyStars(starsAmount) {
         try {
-            if (!db) {
-                throw new Error("Firebase не инициализирован");
-            }
+            const cost = starsAmount * STAR_RATE;
+            const commission = cost * 0.015;
+            const total = cost + commission;
             
-            const checkCode = generateCheckCode();
-            
-            if (amount > userBalance) {
+            if (total > userBalance) {
                 throw new Error('Недостаточно средств на балансе');
             }
             
-            // Создаем чек в Firestore
-            await db.collection('checks').doc(checkCode).set({
-                code: checkCode,
-                amount: amount,
-                creatorId: currentUser.id,
-                creatorName: currentUser.name,
-                status: 'active',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                expiresAt: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)) // 30 дней
-            });
-            
-            // Добавляем транзакцию создания чека
-            await addTransactionToFirebase({
-                type: 'check_created',
-                amount: -amount,
-                checkCode: checkCode,
-                status: 'active',
-                description: `Создан чек ${checkCode}`
+            // Создание транзакции покупки
+            await addTransaction({
+                type: 'stars_purchase',
+                amount: -total,
+                stars: starsAmount,
+                cost: cost,
+                commission: commission,
+                status: 'completed',
+                description: `Покупка ${starsAmount} Telegram Stars`
             });
             
             return {
                 success: true,
-                code: checkCode,
-                amount: amount
+                stars: starsAmount,
+                cost: cost,
+                commission: commission,
+                total: total
             };
             
         } catch (error) {
-            console.error('Error creating check:', error);
+            console.error('Ошибка покупки:', error);
             return {
                 success: false,
                 error: error.message
@@ -1575,72 +1071,7 @@
         }
     }
     
-    // Активация чека
-    async function activateCheckFirebase(checkCode) {
-        try {
-            if (!db) {
-                throw new Error("Firebase не инициализирован");
-            }
-            
-            checkCode = checkCode.toUpperCase().trim();
-            const checkRef = db.collection('checks').doc(checkCode);
-            
-            // Проверяем существование чека
-            const checkDoc = await checkRef.get();
-            
-            if (!checkDoc.exists) {
-                throw new Error('Чек не найден');
-            }
-            
-            const checkData = checkDoc.data();
-            
-            if (checkData.status !== 'active') {
-                throw new Error('Чек уже использован');
-            }
-            
-            // Проверяем срок действия
-            const expiresAt = checkData.expiresAt?.toDate ? checkData.expiresAt.toDate() : new Date(checkData.expiresAt);
-            if (expiresAt < new Date()) {
-                throw new Error('Срок действия чека истек');
-            }
-            
-            // Проверяем, что пользователь не активирует свой чек
-            if (checkData.creatorId === currentUser.id) {
-                throw new Error('Вы не можете активировать свой собственный чек');
-            }
-            
-            // Обновляем чек
-            await checkRef.update({
-                status: 'used',
-                activatorId: currentUser.id,
-                activatorName: currentUser.name,
-                activatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // Добавляем транзакцию активации чека
-            await addTransactionToFirebase({
-                type: 'check_activated',
-                amount: checkData.amount,
-                checkCode: checkCode,
-                status: 'used',
-                description: `Активирован чек ${checkCode}`
-            });
-            
-            return {
-                success: true,
-                amount: checkData.amount
-            };
-            
-        } catch (error) {
-            console.error('Error activating check:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-    
-    // ============ ОСНОВНЫЕ ФУНКЦИИ ============
+    // Основные функции
     function initTheme() {
         if (tg.colorScheme === 'dark') {
             document.body.classList.add('theme-dark');
@@ -1684,10 +1115,10 @@
                 iconElement.textContent = '⚠️';
                 break;
             case 'info':
-                iconElement.textContent = '💸';
+                iconElement.textContent = '💫';
                 break;
             default:
-                iconElement.textContent = '💸';
+                iconElement.textContent = '💫';
         }
         
         notification.classList.add('show');
@@ -1716,138 +1147,15 @@
         }
         
         const tabButtons = document.querySelectorAll('.tab');
-        const tabNames = ['checkout', 'create', 'topup', 'withdraw', 'history', 'news'];
+        const tabNames = ['buy', 'history', 'about'];
         const index = tabNames.indexOf(tabName);
         if (index !== -1 && tabButtons[index]) {
             tabButtons[index].classList.add('active');
         }
         
-        if (tabName === 'withdraw') {
-            updateWithdrawInfo();
-        } else if (tabName === 'history') {
+        if (tabName === 'history') {
             updateHistory();
         }
-    }
-    
-    function initBanks() {
-        const bankGrid = document.getElementById('bank-grid');
-        if (!bankGrid) return;
-        
-        bankGrid.innerHTML = '';
-        
-        RUSSIAN_BANKS.forEach(bank => {
-            const bankOption = document.createElement('div');
-            bankOption.className = 'bank-option';
-            bankOption.dataset.bankId = bank.id;
-            bankOption.innerHTML = `
-                <div class="bank-logo" style="background: ${bank.color}; color: ${bank.textColor || 'white'}">
-                    ${bank.name.substring(0, 2)}
-                </div>
-                <div class="bank-name">${bank.name}</div>
-            `;
-            bankOption.addEventListener('click', () => selectBank(bank.id));
-            bankGrid.appendChild(bankOption);
-        });
-        
-        if (RUSSIAN_BANKS.length > 0) {
-            selectBank(RUSSIAN_BANKS[0].id);
-        }
-    }
-    
-    function selectBank(bankId) {
-        selectedBank = bankId;
-        
-        document.querySelectorAll('.bank-option').forEach(item => {
-            item.classList.remove('active');
-        });
-        
-        const selectedItem = document.querySelector(`.bank-option[data-bank-id="${bankId}"]`);
-        if (selectedItem) {
-            selectedItem.classList.add('active');
-        }
-    }
-    
-    function selectPaymentMethod(method) {
-        selectedPaymentMethod = method;
-        
-        document.querySelectorAll('.payment-method').forEach(item => {
-            item.classList.remove('active');
-        });
-        
-        const selectedItem = document.querySelectorAll('.payment-method')[method === 'card' ? 0 : 1];
-        if (selectedItem) {
-            selectedItem.classList.add('active');
-        }
-        
-        showNotification('Внимание', 'Пополнение временно недоступно.', 'warning');
-    }
-    
-    function selectWithdrawMethod(method) {
-        selectedWithdrawMethod = method;
-        
-        document.querySelectorAll('.method-switch').forEach(item => {
-            item.classList.remove('active');
-        });
-        
-        document.querySelectorAll('.method-switch')[method === 'card' ? 0 : 1].classList.add('active');
-        
-        document.querySelectorAll('.withdraw-method-block').forEach(block => {
-            block.classList.remove('active');
-        });
-        
-        if (method === 'card') {
-            document.getElementById('card-withdraw-block').classList.add('active');
-            document.getElementById('withdraw-button').innerHTML = '<i class="fas fa-wallet"></i> Вывести на карту';
-            document.getElementById('card-number').required = true;
-            document.getElementById('yoomoney-account').required = false;
-        } else {
-            document.getElementById('yoomoney-withdraw-block').classList.add('active');
-            document.getElementById('withdraw-button').innerHTML = '<i class="fas fa-money-bill-wave"></i> Вывести на ЮMoney';
-            document.getElementById('card-number').required = false;
-            document.getElementById('yoomoney-account').required = true;
-        }
-        
-        updateWithdrawInfo();
-    }
-    
-    function updateWithdrawInfo() {
-        const amountInput = document.getElementById('withdraw-amount');
-        const infoElement = document.getElementById('withdraw-info');
-        
-        if (!amountInput || !infoElement) return;
-        
-        const amount = parseFloat(amountInput.value) || 0;
-        
-        if (amount >= 100) {
-            const fee = (amount * 0.015).toFixed(2);
-            const total = (amount - parseFloat(fee)).toFixed(2);
-            
-            infoElement.innerHTML = `
-                Комиссия: ${fee.replace('.', ',')} ₽ • К получению: <strong>${total.replace('.', ',')} ₽</strong>
-            `;
-        } else {
-            infoElement.innerHTML = 'Комиссия: 0 ₽ • К получению: 0 ₽';
-        }
-    }
-    
-    function loadNews() {
-        const newsList = document.getElementById('news-list');
-        if (!newsList) return;
-        
-        newsList.innerHTML = '';
-        
-        NEWS.forEach(news => {
-            const newsItem = document.createElement('div');
-            newsItem.className = `news-item ${news.type === 'warning' ? 'news-warning' : news.type === 'highlight' ? 'news-highlight' : ''}`;
-            
-            newsItem.innerHTML = `
-                <div class="news-date">${news.date}</div>
-                <div class="news-title">${news.title}</div>
-                <div class="news-content">${news.content}</div>
-            `;
-            
-            newsList.appendChild(newsItem);
-        });
     }
     
     function openModal(modalId) {
@@ -1866,202 +1174,49 @@
         }
     }
     
-    function generateCheckCode() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let result = '';
-        for (let i = 0; i < 10; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
+    // Расчет стоимости Stars
+    function updateStarsCost() {
+        const starsInput = document.getElementById('stars-amount');
+        const stars = parseInt(starsInput.value) || 0;
+        
+        if (stars < 10) {
+            starsInput.value = 10;
+            return updateStarsCost();
         }
-        return result;
+        
+        if (stars > 100000) {
+            starsInput.value = 100000;
+            return updateStarsCost();
+        }
+        
+        const cost = stars * STAR_RATE;
+        const commission = cost * 0.015;
+        const total = cost + commission;
+        
+        document.getElementById('stars-cost').textContent = cost.toFixed(2).replace('.', ',') + ' ₽';
+        document.getElementById('commission').textContent = commission.toFixed(2).replace('.', ',') + ' ₽';
+        document.getElementById('total-cost').textContent = total.toFixed(2).replace('.', ',') + ' ₽';
     }
     
-    // ============ ОБРАБОТЧИК СОЗДАНИЯ ЧЕКА ============
-    document.getElementById('create-form')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    // Быстрый выбор суммы
+    function setStarsAmount(amount) {
+        document.getElementById('stars-amount').value = amount;
+        updateStarsCost();
         
-        if (!currentUser) {
-            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
-            return;
-        }
-        
-        const amount = parseFloat(document.getElementById('check-amount').value);
-        
-        if (amount < 10 || amount > 100000) {
-            showNotification('Ошибка', 'Сумма должна быть от 10 до 100 000 ₽', 'error');
-            return;
-        }
-        
-        if (amount > userBalance) {
-            showNotification('Ошибка', 'Недостаточно средств на балансе', 'error');
-            return;
-        }
-        
-        try {
-            const result = await createCheckFirebase(amount);
-            
-            if (result.success) {
-                document.getElementById('new-check-code').textContent = result.code;
-                document.getElementById('check-amount-display').textContent = amount.toFixed(2).replace('.', ',') + ' ₽';
-                document.getElementById('check-result').classList.remove('hidden');
-                
-                showNotification('Чек создан', `Чек на сумму ${amount} ₽ успешно создан`, 'success');
-                document.getElementById('check-amount').value = '';
-            } else {
-                showNotification('Ошибка', result.error, 'error');
-            }
-            
-        } catch (error) {
-            showNotification('Ошибка', 'Не удалось создать чек', 'error');
-        }
-    });
-    
-    // ============ ОБРАБОТЧИК АКТИВАЦИИ ЧЕКА ============
-    document.getElementById('checkout-form')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        if (!currentUser) {
-            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
-            return;
-        }
-        
-        const checkCode = document.getElementById('check-code').value.toUpperCase().trim();
-        
-        if (checkCode.length !== 10) {
-            showNotification('Ошибка', 'Код чека должен содержать 10 символов', 'error');
-            return;
-        }
-        
-        try {
-            const result = await activateCheckFirebase(checkCode);
-            
-            if (result.success) {
-                showNotification('Успешно!', `Чек на сумму ${result.amount} ₽ обналичен`, 'success');
-                document.getElementById('check-code').value = '';
-            } else {
-                showNotification('Ошибка', result.error, 'error');
-            }
-            
-        } catch (error) {
-            showNotification('Ошибка', 'Не удалось активировать чек', 'error');
-        }
-    });
-    
-    function copyCheckCode() {
-        const code = document.getElementById('new-check-code').textContent;
-        navigator.clipboard.writeText(code).then(() => {
-            showNotification('Скопировано', 'Код чека скопирован в буфер обмена', 'success');
+        // Анимация кнопок
+        document.querySelectorAll('.calc-btn').forEach(btn => {
+            btn.classList.remove('active');
         });
+        event.target.classList.add('active');
     }
     
-    // ============ ВЫВОД СРЕДСТВ ============
-    document.getElementById('withdraw-form')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        if (!currentUser) {
-            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
-            return;
-        }
-        
-        const amount = parseFloat(document.getElementById('withdraw-amount').value);
-        
-        if (amount < 100) {
-            showNotification('Ошибка', 'Минимальная сумма вывода: 100 ₽', 'error');
-            return;
-        }
-        
-        if (amount > userBalance) {
-            showNotification('Ошибка', 'Недостаточно средств на балансе', 'error');
-            return;
-        }
-        
-        const fee = amount * 0.015;
-        const total = amount - fee;
-        
-        if (selectedWithdrawMethod === 'card') {
-            const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
-            
-            if (!selectedBank) {
-                showNotification('Ошибка', 'Выберите банк для вывода', 'error');
-                return;
-            }
-            
-            if (!cardNumber || cardNumber.length < 16 || cardNumber.length > 19 || !/^\d+$/.test(cardNumber)) {
-                showNotification('Ошибка', 'Введите корректный номер карты', 'error');
-                return;
-            }
-            
-            const bank = RUSSIAN_BANKS.find(b => b.id === selectedBank);
-            const bankName = bank ? bank.name : 'выбранный банк';
-            
-            try {
-                // Добавляем транзакцию вывода
-                await addTransactionToFirebase({
-                    type: 'withdrawal',
-                    amount: -amount,
-                    method: 'card',
-                    bank: bankName,
-                    cardLast4: cardNumber.slice(-4),
-                    fee: fee,
-                    total: total,
-                    status: 'processing',
-                    description: `Вывод на карту ${bankName}`
-                });
-                
-                showNotification('Заявка принята', 
-                    `Заявка на вывод ${amount.toFixed(2)} ₽ на карту ${bankName} принята. Средства поступят в течение 1-7 рабочих дней.`, 
-                    'success');
-                
-                document.getElementById('card-number').value = '';
-                document.getElementById('withdraw-amount').value = '';
-                updateWithdrawInfo();
-                
-            } catch (error) {
-                showNotification('Ошибка', 'Не удалось создать заявку на вывод', 'error');
-            }
-            
-        } else {
-            const yoomoneyAccount = document.getElementById('yoomoney-account').value.trim();
-            
-            if (!yoomoneyAccount || yoomoneyAccount.length < 13 || yoomoneyAccount.length > 20 || !/^\d+$/.test(yoomoneyAccount)) {
-                showNotification('Ошибка', 'Введите корректный номер кошелька ЮMoney', 'error');
-                return;
-            }
-            
-            try {
-                // Добавляем транзакцию вывода
-                await addTransactionToFirebase({
-                    type: 'withdrawal',
-                    amount: -amount,
-                    method: 'yoomoney',
-                    account: yoomoneyAccount,
-                    fee: fee,
-                    total: total,
-                    status: 'processing',
-                    description: `Вывод на ЮMoney`
-                });
-                
-                showNotification('Заявка принята', 
-                    `Заявка на вывод ${amount.toFixed(2)} ₽ на кошелек ЮMoney принята. Средства поступят в течение 1-3 рабочих дней.`, 
-                    'success');
-                
-                document.getElementById('yoomoney-account').value = '';
-                document.getElementById('withdraw-amount').value = '';
-                updateWithdrawInfo();
-                
-            } catch (error) {
-                showNotification('Ошибка', 'Не удалось создать заявку на вывод', 'error');
-            }
-        }
-    });
-    
-    // ============ ОБНОВЛЕНИЕ ИСТОРИИ ============
+    // Обновление истории
     function updateHistory() {
         const historyList = document.getElementById('history-list');
         if (!historyList) return;
         
         historyList.innerHTML = '';
         
-        // Сортируем транзакции по дате (новые сверху)
         const sortedTransactions = [...userTransactions].sort((a, b) => {
             return new Date(b.timestamp) - new Date(a.timestamp);
         });
@@ -2069,9 +1224,9 @@
         if (sortedTransactions.length === 0) {
             historyList.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    <p>История операций пуста</p>
-                    <p class="text-muted mt-2">Совершите первую операцию</p>
+                    <i class="fas fa-star"></i>
+                    <p>История покупок пуста</p>
+                    <p class="text-muted mt-2">Купите свои первые Telegram Stars</p>
                 </div>
             `;
             return;
@@ -2081,38 +1236,20 @@
             const item = document.createElement('div');
             item.className = 'history-item';
             
-            if (transaction.type === 'withdrawal') {
-                let methodInfo = '';
-                if (transaction.method === 'card') {
-                    methodInfo = `${transaction.bank} •••• ${transaction.cardLast4 || '****'}`;
-                } else {
-                    const account = transaction.account || '';
-                    const maskedAccount = account.length > 8 ? 
-                        `${account.substring(0,4)}...${account.substring(account.length-4)}` : account;
-                    methodInfo = `ЮMoney • ${maskedAccount}`;
-                }
-                
+            if (transaction.type === 'stars_purchase') {
                 item.innerHTML = `
                     <div class="history-info">
-                        <div class="history-title">${methodInfo}</div>
-                        <div class="history-subtitle">${transaction.date} ${transaction.time} • Вывод</div>
-                        <div class="history-status status-pending">В обработке</div>
+                        <div class="history-title">Покупка Telegram Stars</div>
+                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
+                        <div class="history-status status-success">Успешно</div>
                     </div>
-                    <div class="history-amount negative">-${transaction.amount?.toFixed(2) || '0.00'} ₽</div>
-                `;
-            } else if (transaction.type === 'check_created' || transaction.type === 'check_activated') {
-                const isReceived = transaction.type === 'check_activated';
-                const status = transaction.status === 'active' ? 'Активен' : 'Использован';
-                const statusClass = transaction.status === 'active' ? 'status-pending' : 'status-success';
-                
-                item.innerHTML = `
-                    <div class="history-info">
-                        <div class="history-title">Чек ${transaction.checkCode}</div>
-                        <div class="history-subtitle">${transaction.date} ${transaction.time} • ${isReceived ? 'Получен' : 'Создан'}</div>
-                        <div class="history-status ${statusClass}">${status}</div>
-                    </div>
-                    <div class="history-amount ${isReceived ? 'positive' : 'negative'}">
-                        ${isReceived ? '+' : '-'}${Math.abs(transaction.amount)?.toFixed(2) || '0.00'} ₽
+                    <div>
+                        <div style="font-size: 14px; color: var(--tg-secondary-text-color); text-align: right; margin-bottom: 4px;">
+                            ${transaction.stars} ★
+                        </div>
+                        <div class="history-amount negative">
+                            -${transaction.total?.toFixed(2) || '0.00'} ₽
+                        </div>
                     </div>
                 `;
             } else if (transaction.type === 'bonus') {
@@ -2132,68 +1269,80 @@
         });
     }
     
-    // ============ ОБРАБОТЧИКИ СОБЫТИЙ ============
-    document.getElementById('card-number')?.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        value = value.replace(/(.{4})/g, '$1 ').trim();
-        e.target.value = value.substring(0, 19);
-    });
-    
-    document.getElementById('yoomoney-account')?.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        e.target.value = value.substring(0, 20);
-    });
-    
-    document.querySelectorAll('.payment-method').forEach(method => {
-        method.addEventListener('click', function() {
-            showNotification('Внимание', 'Пополнение временно недоступно.', 'warning');
-        });
-    });
-    
-    // ============ ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ============
+    // Обработчики событий
     document.addEventListener('DOMContentLoaded', async function() {
         try {
             tg.expand();
             tg.enableClosingConfirmation();
             initTheme();
             
-            // Используем Firestore для инициализации пользователя
             await initUserFirebase();
-            initBanks();
-            updateWithdrawInfo();
-            loadNews();
             
-            document.getElementById('withdraw-amount').addEventListener('input', updateWithdrawInfo);
+            // Обновление стоимости при изменении количества Stars
+            document.getElementById('stars-amount').addEventListener('input', updateStarsCost);
+            updateStarsCost(); // Инициализация
             
         } catch (error) {
             console.error("Ошибка инициализации:", error);
             showNotification('Ошибка', 'Не удалось инициализировать приложение', 'error');
         }
+    });
+    
+    // Обработка формы покупки
+    document.getElementById('buy-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeModal(this.id);
-                }
-            });
-        });
+        if (!currentUser) {
+            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
+            return;
+        }
         
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal.show').forEach(modal => {
-                    closeModal(modal.id);
-                });
+        const starsInput = document.getElementById('stars-amount');
+        const stars = parseInt(starsInput.value);
+        
+        if (stars < 10 || stars > 100000) {
+            showNotification('Ошибка', 'Количество Stars должно быть от 10 до 100,000', 'error');
+            return;
+        }
+        
+        try {
+            const result = await buyStars(stars);
+            
+            if (result.success) {
+                // Показать результат
+                document.getElementById('purchased-stars').textContent = stars;
+                document.getElementById('buy-result').classList.remove('hidden');
+                document.getElementById('buy-form').style.display = 'none';
+                
+                showNotification('Успешно!', `Куплено ${stars} Telegram Stars`, 'success');
+            } else {
+                showNotification('Ошибка', result.error, 'error');
             }
-        });
-        
-        if (navigator.vibrate) {
-            document.querySelectorAll('button, .tab, .bank-option, .footer-link, .payment-method, .method-switch').forEach(element => {
-                element.addEventListener('click', function() {
-                    navigator.vibrate(50);
-                });
-            });
+            
+        } catch (error) {
+            showNotification('Ошибка', 'Не удалось завершить покупку', 'error');
         }
     });
+    
+    // Вспомогательные функции
+    function loadFromLocalStorage(userId) {
+        try {
+            const data = localStorage.getItem(`user_${userId}`);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            console.error("Ошибка localStorage:", e);
+            return null;
+        }
+    }
+    
+    // Вибрация при кликах
+    if (navigator.vibrate) {
+        document.querySelectorAll('button, .tab, .calc-btn, .footer-link').forEach(element => {
+            element.addEventListener('click', function() {
+                navigator.vibrate(30);
+            });
+        });
+    }
     </script>
 </body>
 </html>
