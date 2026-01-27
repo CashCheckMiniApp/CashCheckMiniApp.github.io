@@ -841,8 +841,8 @@
                 <form id="buy-form">
                     <div class="form-group">
                         <label class="form-label">Количество Stars</label>
-                        <input type="number" class="form-input" id="stars-amount" placeholder="Введите количество" min="10" max="100000" value="100" required>
-                        <span class="form-hint">Минимум: 10 Stars, максимум: 100,000 Stars</span>
+                        <input type="number" class="form-input" id="stars-amount" placeholder="Введите количество" min="100" max="100000" value="100" required>
+                        <span class="form-hint">Минимум: 100 Stars, максимум: 100,000 Stars</span>
                     </div>
                     
                     <div class="calculation">
@@ -895,12 +895,7 @@
                 <div class="info-box" style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--info-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
                     <i class="fas fa-info-circle" style="color: var(--info-color);"></i>
                     <div style="flex: 1;">
-                        <div style="font-weight: 600; color: var(--info-color); margin-bottom: 4px;">Информация о пополнении</div>
-                        <div style="font-size: 14px; color: var(--tg-text-color);">
-                            • Введите номер карты для создания чека<br>
-                            • После оплаты на ЮMoney заявка будет создана<br>
-                            • Баланс пополнится после проверки администратором
-                        </div>
+                        <div style="font-weight: 600; color: var(--info-color); margin-bottom: 4px;">Информация о пополнении</div>>
                     </div>
                 </div>
                 
@@ -908,15 +903,9 @@
                     <div class="form-group">
                         <label class="form-label">Номер банковской карты</label>
                         <input type="text" class="form-input" id="topup-card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
-                        <span class="form-hint">Введите 16-19 цифр номера карты для создания чека</span>
+                        <span class="form-hint">Введите 16-19 цифр номера карты для оплаты</span>
                     </div>
                     
-                    <div class="calculation" style="background: rgba(16, 185, 129, 0.1); border-color: var(--success-color);">
-                        <div class="calculation-row total">
-                            <span>После оплаты:</span>
-                            <span>Заявка будет создана автоматически</span>
-                        </div>
-                    </div>
                     
                     <button type="submit" class="btn">
                         <i class="fas fa-credit-card"></i>
@@ -935,7 +924,7 @@
                             Заявка №<span id="topup-request-id">0001</span>
                         </div>
                         <div style="color: var(--tg-secondary-text-color); margin-bottom: 20px;">
-                            После оплаты на ЮMoney баланс будет пополнен после проверки администратором
+                            После оплаты баланс будет пополнен после проверки оплаты администратором
                         </div>
                         <button class="btn btn-secondary" onclick="showSection('history')">
                             <i class="fas fa-history"></i>
@@ -1048,15 +1037,15 @@
                 <div style="margin-bottom: 20px;">
                     <h4 style="margin-bottom: 12px; font-size: 18px;">Что такое Telegram Stars?</h4>
                     <p style="color: var(--tg-secondary-text-color); margin-bottom: 16px;">
-                        Telegram Stars — это внутренняя валюта Telegram, которую можно использовать для покупки цифровых товаров, поддержки авторов и оплаты услуг в ботовых приложениях.
+                        Telegram Stars — это внутренняя валюта Telegram, которую можно использовать для покупки NFT и подарков от Telegram, поддержки авторов и оплаты услуг в ботовых приложениях.
                     </p>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
                     <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
                         <i class="fas fa-bolt" style="font-size: 24px; color: var(--tg-text-color); margin-bottom: 8px;"></i>
-                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Мгновенно</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Мгновенное зачисление</div>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Низкая цена</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">Самая низкая цена на Stars среди подобных сервисов</div>
                     </div>
                     
                     <div style="text-align: center; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
@@ -1081,23 +1070,13 @@
                 <div style="background: var(--tg-secondary-bg-color); border-radius: var(--radius-md); padding: 16px;">
                     <h4 style="margin-bottom: 12px; font-size: 16px;">Как использовать Stars?</h4>
                     <ul style="color: var(--tg-secondary-text-color); padding-left: 20px;">
-                        <li style="margin-bottom: 8px;">Покупка цифровых товаров</li>
+                        <li style="margin-bottom: 8px;">Покупка NFT и подаров</li>
                         <li style="margin-bottom: 8px;">Поддержка авторов каналов</li>
                         <li style="margin-bottom: 8px;">Оплата услуг в ботах</li>
                         <li>Покупка премиум-подписок</li>
                     </ul>
                 </div>
             </div>
-            
-            <div class="footer">
-                <div class="footer-links">
-                    <a href="#" class="footer-link" onclick="openModal('agreementModal'); return false;">Соглашение</a>
-                    <a href="#" class="footer-link" onclick="showNotification('Поддержка', 'По всем вопросам: starpay@mail.ru', 'info'); return false;">Поддержка</a>
-                    <a href="#" class="footer-link" onclick="showSection('about'); return false;">О сервисе</a>
-                </div>
-                <div class="footer-text">
-                    © 2025 StarPay. Неофициальный сервис для покупки Telegram Stars
-                </div>
             </div>
         </div>
     </div>
