@@ -817,7 +817,7 @@
             border-radius: var(--radius-md);
             padding: 20px;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             z-index: 1000;
@@ -829,6 +829,33 @@
         
         .notification.show {
             transform: translateX(-50%) translateY(0);
+        }
+        
+        .notification-icon {
+            font-size: 24px;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .notification-text {
+            font-size: 14px;
+            color: var(--tg-secondary-text-color);
+            line-height: 1.4;
         }
         
         .modal {
@@ -1489,6 +1516,8 @@
                         <div style="background: var(--tg-secondary-bg-color); padding: 20px; border-radius: var(--radius-md); margin-bottom: 28px; border: 2px solid var(--tg-border-color);">
                             <div style="font-weight: 700; margin-bottom: 12px; font-size: 15px;">Номер карты для чека:</div>
                             <div style="font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 600; letter-spacing: 2px;" id="payment-card-number">**** **** **** ****</div>
+                            <div style="font-weight: 700; margin-top: 16px; font-size: 15px;">Сумма пополнения:</div>
+                            <div style="font-size: 24px; font-weight: 800; color: var(--success-color); margin-top: 8px;" id="payment-amount">0.00 ₽</div>
                         </div>
                         <button class="btn glow" onclick="redirectToPayment()">
                             <i class="fas fa-external-link-alt"></i>
@@ -1636,6 +1665,12 @@
                     
                     <form id="topup-form">
                         <div class="form-group">
+                            <label class="form-label">Сумма пополнения (₽)</label>
+                            <input type="number" class="form-input" id="topup-amount" placeholder="Введите сумму" min="10" step="0.01" required>
+                            <span class="form-hint">Минимальная сумма: 10 ₽</span>
+                        </div>
+                        
+                        <div class="form-group">
                             <label class="form-label">Номер банковской карты</label>
                             <input type="text" class="form-input" id="topup-card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
                             <span class="form-hint">Введите 16-19 цифр номера карты для оплаты</span>
@@ -1656,6 +1691,9 @@
                             <i class="fas fa-check-circle" style="font-size: 64px; color: var(--success-color); margin-bottom: 20px; animation: fadeIn 1s ease;"></i>
                             <div style="font-size: 22px; font-weight: 700; margin-bottom: 16px; letter-spacing: 1px;">
                                 Заявка №<span id="topup-request-id">0001</span>
+                            </div>
+                            <div style="color: var(--tg-secondary-text-color); margin-bottom: 12px; font-size: 18px;">
+                                Сумма: <strong id="topup-result-amount">0.00 ₽</strong>
                             </div>
                             <div style="color: var(--tg-secondary-text-color); margin-bottom: 28px; font-size: 16px;">
                                 После оплаты баланс будет пополнен после проверки оплаты администратором
@@ -1779,25 +1817,21 @@
                         <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
                             <i class="fas fa-bolt" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
                             <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Низкая цена</div>
-                            <div style="font-size: 14px; color: var(--tg-secondary-text-color);">Самая низкая цена на Stars среди подобных сервисов</div>
                         </div>
                         
                         <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
                             <i class="fas fa-shield-alt" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
-                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Безопасно</div>
-                            <div style="font-size: 14px; color: var(--tg-secondary-text-color);">Защита транзакций</div>
+                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Защита транзакций</div>
                         </div>
                         
                         <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
                             <i class="fas fa-percent" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
                             <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Низкая комиссия</div>
-                            <div style="font-size: 14px; color: var(--tg-secondary-text-color);">Всего 1.5%</div>
                         </div>
                         
                         <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
                             <i class="fas fa-headset" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
-                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Поддержка</div>
-                            <div style="font-size: 14px; color: var(--tg-secondary-text-color);">24/7 поддержка</div>
+                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;"> 24/7 Поддержка</div>>
                         </div>
                     </div>
                     
@@ -1813,6 +1847,9 @@
                 </div>
             </div>
         </div>
+
+
+
     <script>
     // Telegram WebApp API
     let tg = window.Telegram.WebApp;
@@ -1836,6 +1873,7 @@
     let userTransactions = [];
     const STAR_RATE = 1.1;
     let currentTopupCard = '';
+    let currentTopupAmount = 0;
     let isAdmin = false;
     let editingUserId = null;
     
@@ -1916,26 +1954,40 @@
         titleElement.textContent = title;
         textElement.textContent = message;
         
+        // Сбросить стили уведомления
+        notification.style.borderLeft = '';
+        iconElement.style.background = '';
+        iconElement.style.color = '';
+        
         switch(type) {
             case 'success':
                 iconElement.textContent = '✅';
                 notification.style.borderLeft = '4px solid var(--success-color)';
+                iconElement.style.background = 'rgba(16, 185, 129, 0.1)';
+                iconElement.style.color = 'var(--success-color)';
                 break;
             case 'error':
                 iconElement.textContent = '❌';
                 notification.style.borderLeft = '4px solid var(--error-color)';
+                iconElement.style.background = 'rgba(239, 68, 68, 0.1)';
+                iconElement.style.color = 'var(--error-color)';
                 break;
             case 'warning':
                 iconElement.textContent = '⚠️';
                 notification.style.borderLeft = '4px solid var(--warning-color)';
+                iconElement.style.background = 'rgba(245, 158, 11, 0.1)';
+                iconElement.style.color = 'var(--warning-color)';
                 break;
             default:
                 iconElement.textContent = '💫';
                 notification.style.borderLeft = '4px solid var(--tg-button-color)';
+                iconElement.style.background = 'rgba(0, 0, 0, 0.1)';
+                iconElement.style.color = 'var(--tg-text-color)';
         }
         
         notification.classList.add('show');
         
+        // Автоматически скрыть уведомление через 3 секунды
         setTimeout(() => {
             notification.classList.remove('show');
         }, 3000);
@@ -2257,12 +2309,16 @@
         }
     }
     
-    async function createTopupRequest(cardNumber) {
+    async function createTopupRequest(cardNumber, amount) {
         try {
             const cleanCardNumber = cardNumber.replace(/\s/g, '');
             
             if (cleanCardNumber.length < 16 || cleanCardNumber.length > 19 || !/^\d+$/.test(cleanCardNumber)) {
                 throw new Error('Неверный номер карты');
+            }
+            
+            if (amount < 10) {
+                throw new Error('Минимальная сумма пополнения: 10 ₽');
             }
             
             const maskedCard = '**** **** **** ' + cleanCardNumber.slice(-4);
@@ -2272,17 +2328,20 @@
                 amount: 0,
                 cardNumber: cleanCardNumber,
                 maskedCard: maskedCard,
+                topupAmount: amount,
                 status: 'pending',
-                description: `Заявка на пополнение баланса`
+                description: `Заявка на пополнение баланса на ${amount.toFixed(2)} ₽`
             });
             
             currentTopupCard = cleanCardNumber;
+            currentTopupAmount = amount;
             
             return {
                 success: true,
                 requestId: transaction.id,
                 cardNumber: cleanCardNumber,
                 maskedCard: maskedCard,
+                amount: amount,
                 transaction: transaction
             };
             
@@ -2344,6 +2403,7 @@
                     </div>
                 `;
             } else if (transaction.type === 'topup_request') {
+                const amount = transaction.topupAmount || 0;
                 html += `
                     <div class="history-item" style="animation-delay: ${delay}s;">
                         <div class="history-info">
@@ -2356,6 +2416,9 @@
                             </div>
                             <div class="history-subtitle">
                                 Карта: ${transaction.maskedCard || '**** **** **** ****'}
+                            </div>
+                            <div class="history-subtitle">
+                                Сумма: ${amount.toFixed(2)} ₽
                             </div>
                             <div class="history-status status-pending">
                                 Ожидание оплаты
@@ -2403,7 +2466,10 @@
     
     // Админ функции
     async function loadAdminStats() {
-        if (!isAdmin || !db) return;
+        if (!isAdmin || !db) {
+            showNotification('Ошибка', 'Нет доступа к админ панели или Firebase не инициализирован', 'error');
+            return;
+        }
         
         try {
             // Показываем анимацию загрузки
@@ -2411,13 +2477,12 @@
             const originalHTML = statsSection.innerHTML;
             statsSection.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
             
+            // Получаем данные из Firebase
             const usersSnapshot = await db.collection('users').get();
             const totalUsers = usersSnapshot.size;
-            document.getElementById('total-users').textContent = totalUsers;
             
             const transactionsSnapshot = await db.collection('all_transactions').get();
             const totalTransactions = transactionsSnapshot.size;
-            document.getElementById('total-transactions').textContent = totalTransactions;
             
             let totalStars = 0;
             let totalRevenue = 0;
@@ -2430,20 +2495,29 @@
                 }
             });
             
-            document.getElementById('total-stars').textContent = totalStars.toLocaleString();
-            document.getElementById('total-revenue').textContent = totalRevenue.toFixed(2).replace('.', ',') + ' ₽';
-            
             // Восстанавливаем HTML
             statsSection.innerHTML = originalHTML;
+            
+            // Устанавливаем значения
+            document.getElementById('total-users').textContent = totalUsers.toLocaleString();
+            document.getElementById('total-transactions').textContent = totalTransactions.toLocaleString();
+            document.getElementById('total-stars').textContent = totalStars.toLocaleString();
+            document.getElementById('total-revenue').textContent = totalRevenue.toFixed(2).replace('.', ',') + ' ₽';
             
             // Анимация обновления значений
             animateValue('total-users', 0, totalUsers, 500);
             animateValue('total-transactions', 0, totalTransactions, 500);
             animateValue('total-stars', 0, totalStars, 500);
             
+            showNotification('Статистика обновлена', 'Данные успешно загружены', 'success');
+            
         } catch (error) {
             console.error('Ошибка загрузки статистики:', error);
-            showNotification('Ошибка', 'Не удалось загрузить статистику', 'error');
+            showNotification('Ошибка', 'Не удалось загрузить статистику: ' + error.message, 'error');
+            
+            // Восстанавливаем оригинальный HTML в случае ошибки
+            const statsSection = document.getElementById('admin-stats-section');
+            statsSection.innerHTML = originalHTML;
         }
     }
     
@@ -2471,7 +2545,10 @@
     }
     
     async function loadAdminTransactions(filter = 'all') {
-        if (!isAdmin || !db) return;
+        if (!isAdmin || !db) {
+            showNotification('Ошибка', 'Нет доступа к админ панели', 'error');
+            return;
+        }
         
         const transactionsContainer = document.getElementById('admin-transactions-content');
         transactionsContainer.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
@@ -2524,7 +2601,8 @@
                 } else if (data.type === 'topup_request') {
                     typeBadge = '<span class="transaction-type type-topup">Заявка</span>';
                     const card = data.maskedCard || '**** ****';
-                    details = `Карта: ${card}`;
+                    const amount = data.topupAmount || 0;
+                    details = `Карта: ${card}<br>Сумма: ${amount.toFixed(2)} ₽`;
                 } else if (data.type === 'admin_balance_change') {
                     typeBadge = '<span>Админ</span>';
                     details = data.reason || 'Изменение баланса';
@@ -2575,11 +2653,15 @@
         } catch (error) {
             console.error('Ошибка загрузки транзакций:', error);
             transactionsContainer.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Ошибка загрузки транзакций</p></div>';
+            showNotification('Ошибка', 'Не удалось загрузить транзакции', 'error');
         }
     }
     
     async function loadAdminUsers() {
-        if (!isAdmin || !db) return;
+        if (!isAdmin || !db) {
+            showNotification('Ошибка', 'Нет доступа к админ панели', 'error');
+            return;
+        }
         
         const usersContainer = document.getElementById('admin-users-content');
         usersContainer.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
@@ -2634,6 +2716,7 @@
         } catch (error) {
             console.error('Ошибка загрузки пользователей:', error);
             usersContainer.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Ошибка загрузки пользователей</p></div>';
+            showNotification('Ошибка', 'Не удалось загрузить пользователей', 'error');
         }
     }
     
@@ -2736,8 +2819,8 @@
     }
     
     function redirectToPayment() {
-        if (!currentTopupCard) {
-            showNotification('Ошибка', 'Номер карты не указан', 'error');
+        if (!currentTopupCard || !currentTopupAmount) {
+            showNotification('Ошибка', 'Данные для оплаты не указаны', 'error');
             return;
         }
         
@@ -2746,19 +2829,23 @@
         localStorage.setItem('last_payment_attempt', JSON.stringify({
             userId: userId,
             cardNumber: currentTopupCard,
+            amount: currentTopupAmount,
             timestamp: new Date().toISOString(),
             requestId: `TP${Date.now().toString().slice(-6)}`
         }));
         
-        window.open(`https://yoomoney.ru/to/4100117160998714/0?label=topup_${userId}`, '_blank');
+        // Формируем URL для ЮMoney с суммой
+        const paymentUrl = `https://yoomoney.ru/to/4100117160998714/${currentTopupAmount}?label=topup_${userId}_${currentTopupAmount}`;
+        window.open(paymentUrl, '_blank');
         
         closeModal('paymentModal');
         
         document.getElementById('topup-result').classList.remove('hidden');
         document.getElementById('topup-form').style.display = 'none';
         document.getElementById('topup-request-id').textContent = `TP${Date.now().toString().slice(-6)}`;
+        document.getElementById('topup-result-amount').textContent = currentTopupAmount.toFixed(2) + ' ₽';
         
-        showNotification('Заявка создана', 'Перейдите на страницу ЮMoney для оплаты', 'success');
+        showNotification('Заявка создана', `Перейдите на страницу ЮMoney для оплаты ${currentTopupAmount.toFixed(2)} ₽`, 'success');
     }
     
     // Инициализация
@@ -2779,12 +2866,13 @@
                     app = firebase.initializeApp(firebaseConfig);
                     db = firebase.firestore();
                     console.log("Firebase инициализирован");
+                    
+                    // Инициализируем пользователя после успешной инициализации Firebase
+                    await initUser();
                 } catch (error) {
                     console.error("Ошибка инициализации Firebase:", error);
                     showNotification('Ошибка', 'Не удалось подключиться к базе данных', 'error');
                 }
-                
-                await initUser();
             }, 1000);
             
             // Обновление стоимости Stars
@@ -2840,7 +2928,7 @@
         const stars = parseInt(starsInput.value);
         
         if (stars < 10 || stars > 100000) {
-            showNotification('Ошибка', 'Количество Stars должно быть от 100 до 100,000', 'error');
+            showNotification('Ошибка', 'Количество Stars должно быть от 10 до 100,000', 'error');
             return;
         }
         
@@ -2889,19 +2977,28 @@
             return;
         }
         
+        const amountInput = document.getElementById('topup-amount');
         const cardInput = document.getElementById('topup-card-number');
+        
+        const amount = parseFloat(amountInput.value);
         const cardNumber = cardInput.value.replace(/\s/g, '');
         
+        if (isNaN(amount) || amount < 10) {
+            showNotification('Ошибка', 'Минимальная сумма пополнения: 10 ₽', 'error');
+            return;
+        }
+        
         if (cardNumber.length < 16 || cardNumber.length > 19 || !/^\d+$/.test(cardNumber)) {
-            showNotification('Ошибка', 'Введите корректный номер карты', 'error');
+            showNotification('Ошибка', 'Введите корректный номер карты (16-19 цифр)', 'error');
             return;
         }
         
         try {
-            const result = await createTopupRequest(cardNumber);
+            const result = await createTopupRequest(cardNumber, amount);
             
             if (result.success) {
                 document.getElementById('payment-card-number').textContent = result.maskedCard;
+                document.getElementById('payment-amount').textContent = result.amount.toFixed(2) + ' ₽';
                 openModal('paymentModal');
             } else {
                 showNotification('Ошибка', result.error, 'error');
