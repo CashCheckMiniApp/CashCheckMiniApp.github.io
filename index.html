@@ -811,7 +811,7 @@
             position: fixed;
             top: 20px;
             left: 50%;
-            transform: translateX(-50%) translateY(-100px);
+            transform: translateX(-50%) translateY(-150px);
             background: var(--tg-card-bg);
             border: 1px solid var(--tg-border-color);
             border-radius: var(--radius-md);
@@ -820,15 +820,22 @@
             align-items: flex-start;
             gap: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
+            z-index: 10000;
             max-width: 400px;
             width: 90%;
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s ease;
             backdrop-filter: blur(10px);
+            opacity: 0;
         }
         
         .notification.show {
             transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .notification.hide {
+            transform: translateX(-50%) translateY(-150px);
+            opacity: 0;
         }
         
         .notification-icon {
@@ -1831,7 +1838,7 @@
                         
                         <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
                             <i class="fas fa-headset" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
-                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;"> 24/7 Поддержка</div>>
+                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;"> 24/7 Поддержка</div>
                         </div>
                     </div>
                     
@@ -1847,8 +1854,7 @@
                 </div>
             </div>
         </div>
-
-
+    </div>
 
     <script>
     // Telegram WebApp API
@@ -1954,6 +1960,10 @@
         titleElement.textContent = title;
         textElement.textContent = message;
         
+        // Скрыть предыдущее уведомление
+        notification.classList.remove('show');
+        notification.classList.remove('hide');
+        
         // Сбросить стили уведомления
         notification.style.borderLeft = '';
         iconElement.style.background = '';
@@ -1985,11 +1995,15 @@
                 iconElement.style.color = 'var(--tg-text-color)';
         }
         
-        notification.classList.add('show');
+        // Показать уведомление с небольшой задержкой для анимации
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
         
         // Автоматически скрыть уведомление через 3 секунды
         setTimeout(() => {
             notification.classList.remove('show');
+            notification.classList.add('hide');
         }, 3000);
     }
     
@@ -2148,6 +2162,29 @@
         event.target.classList.add('active');
     }
     
+    function animateValue(elementId, start, end, duration) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            
+            if (elementId.includes('revenue')) {
+                element.textContent = value.toFixed(2).replace('.', ',') + ' ₽';
+            } else {
+                element.textContent = value.toLocaleString();
+            }
+            
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+    
     // Работа с Firebase
     async function initUser() {
         try {
@@ -2217,7 +2254,7 @@
     }
     
     async function addTransaction(transaction) {
-        if (!currentUser) return null;
+        if (!currentUser || !db) return null;
         
         try {
             const userId = currentUser.id;
@@ -2237,26 +2274,25 @@
                 time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
                 userId: userId,
                 userName: currentUser.name,
-                username: currentUser.username
+                username: currentUser.username,
+                userTelegramId: currentUser.telegramId
             };
             
             userTransactions.push(fullTransaction);
             
             // Сохранение в Firebase
-            if (db) {
-                // Обновление пользователя
-                await db.collection('users').doc(userId).update({
-                    balance: userBalance,
-                    transactions: userTransactions,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Сохранение в общую коллекцию
-                await db.collection('all_transactions').doc(transactionId).set({
-                    ...fullTransaction,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
+            // Обновление пользователя
+            await db.collection('users').doc(userId).update({
+                balance: userBalance,
+                transactions: firebase.firestore.FieldValue.arrayUnion(fullTransaction),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Сохранение в общую коллекцию
+            await db.collection('all_transactions').doc(transactionId).set({
+                ...fullTransaction,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
             
             updateBalance();
             updateHistory();
@@ -2508,6 +2544,7 @@
             animateValue('total-users', 0, totalUsers, 500);
             animateValue('total-transactions', 0, totalTransactions, 500);
             animateValue('total-stars', 0, totalStars, 500);
+            animateValue('total-revenue', 0, totalRevenue, 500);
             
             showNotification('Статистика обновлена', 'Данные успешно загружены', 'success');
             
@@ -2521,29 +2558,6 @@
         }
     }
     
-    function animateValue(elementId, start, end, duration) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            const value = Math.floor(progress * (end - start) + start);
-            
-            if (elementId.includes('revenue')) {
-                element.textContent = value.toFixed(2).replace('.', ',') + ' ₽';
-            } else {
-                element.textContent = value.toLocaleString();
-            }
-            
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
-        };
-        window.requestAnimationFrame(step);
-    }
-    
     async function loadAdminTransactions(filter = 'all') {
         if (!isAdmin || !db) {
             showNotification('Ошибка', 'Нет доступа к админ панели', 'error');
@@ -2554,7 +2568,7 @@
         transactionsContainer.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
         
         try {
-            let query = db.collection('all_transactions').orderBy('timestamp', 'desc').limit(50);
+            let query = db.collection('all_transactions').orderBy('timestamp', 'desc').limit(100);
             
             if (filter === 'stars') {
                 query = query.where('type', '==', 'stars_purchase');
@@ -2574,12 +2588,20 @@
             html += '<th>Пользователь</th>';
             html += '<th>Тип</th>';
             html += '<th>Детали</th>';
-            html += '<th>Сумма</th>';
+            html += '<th>Сумма (₽)</th>';
             html += '<th>Статус</th>';
             html += '</tr></thead><tbody>';
             
+            let hasData = false;
+            
             snapshot.forEach((doc, index) => {
                 const data = doc.data();
+                
+                // Пропускаем если данные не соответствуют фильтру
+                if (filter === 'stars' && data.type !== 'stars_purchase') return;
+                if (filter === 'topup' && !['topup_request', 'topup_completed'].includes(data.type)) return;
+                
+                hasData = true;
                 
                 let dateStr = 'N/A';
                 let timeStr = '';
@@ -2594,32 +2616,26 @@
                 
                 let typeBadge = '';
                 let details = '';
+                let amount = '0.00 ₽';
+                let amountColor = 'var(--tg-text-color)';
                 
                 if (data.type === 'stars_purchase') {
                     typeBadge = '<span class="transaction-type type-stars">Stars</span>';
-                    details = `${data.stars || 0} Stars<br><small>${(data.total || 0).toFixed(2)} ₽</small>`;
-                } else if (data.type === 'topup_request') {
-                    typeBadge = '<span class="transaction-type type-topup">Заявка</span>';
+                    details = `${data.stars || 0} Stars`;
+                    amount = `-${Math.abs(data.total || data.amount || 0).toFixed(2)} ₽`;
+                    amountColor = 'var(--error-color)';
+                } else if (data.type === 'topup_request' || data.type === 'topup_completed') {
+                    typeBadge = '<span class="transaction-type type-topup">Пополнение</span>';
                     const card = data.maskedCard || '**** ****';
-                    const amount = data.topupAmount || 0;
-                    details = `Карта: ${card}<br>Сумма: ${amount.toFixed(2)} ₽`;
+                    const topupAmount = data.topupAmount || 0;
+                    details = `Карта: ${card}`;
+                    amount = `+${topupAmount.toFixed(2)} ₽`;
+                    amountColor = 'var(--success-color)';
                 } else if (data.type === 'admin_balance_change') {
                     typeBadge = '<span>Админ</span>';
                     details = data.reason || 'Изменение баланса';
-                }
-                
-                let amount = '';
-                let amountColor = 'var(--tg-text-color)';
-                if (data.amount !== undefined) {
-                    if (data.amount < 0) {
-                        amount = `-${Math.abs(data.amount).toFixed(2)} ₽`;
-                        amountColor = 'var(--error-color)';
-                    } else if (data.amount > 0) {
-                        amount = `+${data.amount.toFixed(2)} ₽`;
-                        amountColor = 'var(--success-color)';
-                    } else {
-                        amount = '0.00 ₽';
-                    }
+                    amount = `${data.amount >= 0 ? '+' : ''}${data.amount?.toFixed(2) || '0.00'} ₽`;
+                    amountColor = data.amount >= 0 ? 'var(--success-color)' : 'var(--error-color)';
                 }
                 
                 let statusBadge = '';
@@ -2627,6 +2643,8 @@
                     statusBadge = '<span class="history-status status-success">Завершено</span>';
                 } else if (data.status === 'pending') {
                     statusBadge = '<span class="history-status status-pending">Ожидание</span>';
+                } else if (data.status === 'error') {
+                    statusBadge = '<span class="history-status status-error">Ошибка</span>';
                 }
                 
                 html += `
@@ -2647,7 +2665,12 @@
                 `;
             });
             
-            html += '</tbody></table></div>';
+            if (!hasData) {
+                html = '<div class="empty-state"><i class="fas fa-database"></i><p>Транзакций не найдено</p></div>';
+            } else {
+                html += '</tbody></table></div>';
+            }
+            
             transactionsContainer.innerHTML = html;
             
         } catch (error) {
