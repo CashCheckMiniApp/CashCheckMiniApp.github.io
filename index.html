@@ -40,6 +40,8 @@
             --radius-xs: 6px;
             --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             --transition-fast: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+            --roulette-nothing-color: #CCCCCC;
+            --roulette-nft-color: #FFFFFF;
         }
         
         .theme-dark {
@@ -55,7 +57,8 @@
             --tg-card-bg: #111111;
             --tg-shadow: 0 4px 16px rgba(255, 255, 255, 0.08);
             --tg-input-bg: #222222;
-            --roulette-color: #FFFFFF;
+            --roulette-nothing-color: #333333;
+            --roulette-nft-color: #222222;
         }
         
         * {
@@ -818,6 +821,24 @@
             border: 1px solid var(--tg-border-color);
         }
         
+        /* Кнопка изменения баланса в админ панели */
+        .btn-balance {
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
+            border: 1px solid var(--tg-button-color);
+            border-radius: var(--radius-xs);
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-left: 8px;
+        }
+        
+        .btn-balance:hover {
+            opacity: 0.9;
+        }
+        
         /* Уведомления */
         .notification {
             position: fixed;
@@ -1394,6 +1415,48 @@
         </div>
     </div>
 
+    <!-- Модальное окно изменения баланса -->
+    <div id="editBalanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Изменение баланса пользователя</div>
+                <button class="modal-close" onclick="closeModal('editBalanceModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Пользователь</label>
+                    <div id="edit-user-info" style="background: var(--tg-secondary-bg-color); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px; border: 1px solid var(--tg-border-color);">
+                        Загрузка...
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Текущий баланс</label>
+                    <div id="current-balance" style="font-size: 24px; font-weight: 800; color: var(--tg-text-color); margin-bottom: 16px;">
+                        0 ₽
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Новый баланс (₽)</label>
+                    <input type="number" class="form-input" id="new-balance" placeholder="Введите новый баланс" step="0.01" required>
+                    <span class="form-hint">Введите сумму в рублях</span>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Комментарий</label>
+                    <input type="text" class="form-input" id="balance-comment" placeholder="Причина изменения баланса" maxlength="100">
+                    <span class="form-hint">Необязательно</span>
+                </div>
+                
+                <button class="btn" onclick="saveUserBalance()" style="margin-top: 24px;">
+                    <i class="fas fa-save"></i>
+                    Сохранить изменения
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Уведомление -->
     <div id="notification" class="notification">
         <div class="notification-icon" id="notification-icon">★</div>
@@ -1431,6 +1494,9 @@
     let currentTopupAmount = 0;
     let currentTopupCard = '';
     
+    // Переменные для управления балансом
+    let selectedUserForEdit = null;
+    
     // Анимация загрузки
     function simulateLoading() {
         const progressBar = document.getElementById('progress-bar');
@@ -1451,7 +1517,7 @@
         }, 100);
     }
     
-    // Функция для рисования рулетки с четкими секторами
+    // Функция для рисования рулетки с разными цветами секторов
     function drawRouletteWheel() {
         const canvas = document.getElementById('roulette-canvas');
         if (!canvas) return;
@@ -1464,20 +1530,24 @@
         // Очищаем canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
+        // Получаем цвета из CSS переменных
+        const nothingColor = getComputedStyle(document.documentElement).getPropertyValue('--roulette-nothing-color').trim();
+        const nftColor = getComputedStyle(document.documentElement).getPropertyValue('--roulette-nft-color').trim();
+        
         // Рисуем сектор "Ничего" (левая половина) - СЕРЫЙ
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, 0, Math.PI, false); // от 0° до 180° (левая половина)
         ctx.closePath();
-        ctx.fillStyle = 'var(--tg-secondary-bg-color)';
+        ctx.fillStyle = nothingColor;
         ctx.fill();
         
-        // Рисуем сектор "NFT" (правая половина) - ЧЕРНЫЙ/БЕЛЫЙ
+        // Рисуем сектор "NFT" (правая половина) - БЕЛЫЙ/ТЕМНЫЙ
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, Math.PI, 0, false); // от 180° до 360° (правая половина)
         ctx.closePath();
-        ctx.fillStyle = 'var(--tg-button-color)';
+        ctx.fillStyle = nftColor;
         ctx.fill();
         
         // Добавляем разделительную линию
@@ -1500,7 +1570,7 @@
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(Math.PI / 2); // Поворачиваем на 90 градусов для правой половины
-        ctx.fillStyle = 'var(--tg-button-text-color)';
+        ctx.fillStyle = document.body.classList.contains('theme-dark') ? '#000000' : '#000000';
         ctx.font = 'bold 16px Inter';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1511,7 +1581,7 @@
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(-Math.PI / 2); // Поворачиваем на -90 градусов для левой половины
-        ctx.fillStyle = 'var(--tg-text-color)';
+        ctx.fillStyle = document.body.classList.contains('theme-dark') ? '#FFFFFF' : '#000000';
         ctx.font = 'bold 16px Inter';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -2291,6 +2361,7 @@
             html += '<th>Username</th>';
             html += '<th>Баланс</th>';
             html += '<th>Регистрация</th>';
+            html += '<th>Действия</th>';
             html += '</tr></thead><tbody>';
             
             usersSnapshot.forEach((doc) => {
@@ -2311,6 +2382,11 @@
                         <td>${user.username ? '@' + user.username : '-'}</td>
                         <td style="font-weight: 700;">${balance.toFixed(2)} ₽</td>
                         <td>${registrationDate}</td>
+                        <td>
+                            <button class="btn-balance" onclick="openEditBalanceModal('${userId}', '${user.name || 'Неизвестно'}', '${user.username || ''}', ${balance})">
+                                Изменить баланс
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
@@ -2321,6 +2397,101 @@
         } catch (error) {
             console.error('Ошибка загрузки пользователей:', error);
             document.getElementById('admin-users-content').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Ошибка загрузки</p></div>';
+        }
+    }
+    
+    // Функция для открытия модального окна изменения баланса
+    function openEditBalanceModal(userId, userName, username, currentBalance) {
+        selectedUserForEdit = {
+            id: userId,
+            name: userName,
+            username: username,
+            currentBalance: currentBalance
+        };
+        
+        document.getElementById('edit-user-info').innerHTML = `
+            <div><strong>${userName}</strong></div>
+            ${username ? `<div style="font-size: 12px; color: var(--tg-secondary-text-color);">@${username}</div>` : ''}
+            <div style="font-size: 11px; color: var(--tg-secondary-text-color); margin-top: 4px;">ID: ${userId}</div>
+        `;
+        
+        document.getElementById('current-balance').textContent = currentBalance.toFixed(2) + ' ₽';
+        document.getElementById('new-balance').value = currentBalance.toFixed(2);
+        document.getElementById('balance-comment').value = '';
+        
+        openModal('editBalanceModal');
+    }
+    
+    // Функция для сохранения измененного баланса
+    async function saveUserBalance() {
+        if (!selectedUserForEdit) {
+            showNotification('Ошибка', 'Пользователь не выбран', 'error');
+            return;
+        }
+        
+        const newBalanceInput = document.getElementById('new-balance');
+        const newBalance = parseFloat(newBalanceInput.value);
+        const comment = document.getElementById('balance-comment').value;
+        
+        if (isNaN(newBalance) || newBalance < 0) {
+            showNotification('Ошибка', 'Введите корректную сумму баланса', 'error');
+            return;
+        }
+        
+        try {
+            if (!firebaseInitialized || !db) {
+                throw new Error('Firebase не доступен');
+            }
+            
+            // Обновляем баланс пользователя
+            await db.collection('users').doc(selectedUserForEdit.id).update({
+                balance: newBalance,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Создаем транзакцию изменения баланса
+            const transactionId = 'admin_balance_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const adminTransaction = {
+                id: transactionId,
+                type: 'admin_balance_change',
+                amount: newBalance - selectedUserForEdit.currentBalance,
+                oldBalance: selectedUserForEdit.currentBalance,
+                newBalance: newBalance,
+                userId: selectedUserForEdit.id,
+                userName: selectedUserForEdit.name,
+                username: selectedUserForEdit.username,
+                adminId: currentUser?.id || 'admin',
+                adminName: currentUser?.name || 'Администратор',
+                comment: comment || '',
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleDateString('ru-RU'),
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                status: 'completed',
+                description: `Изменение баланса администратором${comment ? ': ' + comment : ''}`
+            };
+            
+            // Добавляем транзакцию в историю пользователя
+            await db.collection('users').doc(selectedUserForEdit.id).update({
+                transactions: firebase.firestore.FieldValue.arrayUnion(adminTransaction)
+            });
+            
+            // Добавляем транзакцию в общую коллекцию
+            await db.collection('all_transactions').doc(transactionId).set({
+                ...adminTransaction,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            showNotification('Успешно', `Баланс пользователя ${selectedUserForEdit.name} изменен на ${newBalance.toFixed(2)} ₽`, 'success');
+            
+            // Закрываем модальное окно
+            closeModal('editBalanceModal');
+            
+            // Обновляем список пользователей
+            loadAdminUsers();
+            
+        } catch (error) {
+            console.error('Ошибка изменения баланса:', error);
+            showNotification('Ошибка', 'Не удалось изменить баланс', 'error');
         }
     }
     
@@ -2369,7 +2540,7 @@
         window.open(paymentUrl, '_blank');
         
         closeModal('paymentModal');
-        showNotification('Заявка создана', 'Перейдите на страницу ЮMoney для оплаты', 'success');
+        showNotification('Заявка создана', 'Перейдите на страницу ЮMoney для оплата', 'success');
     }
     
     // Инициализация
