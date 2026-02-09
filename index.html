@@ -341,6 +341,7 @@
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
             background: var(--tg-text-color);
             color: var(--tg-bg-color);
+            border-color: var(--tg-text-color);
         }
         
         .balance:hover::before {
@@ -1758,65 +1759,1849 @@
     <div class="particles" id="particles"></div>
 
     <div class="content-wrapper">
-        <!-- Модальные окна остаются без изменений -->
-        <!-- [Остальной HTML код остается таким же до секции рулетки] -->
+        <div id="agreementModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">Пользовательское соглашение</div>
+                    <button class="modal-close" onclick="closeModal('agreementModal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="document-content">
+                        <h3>Пользовательское соглашение StarsPayers</h3>
+                        <p><strong>Дата вступления в силу:</strong> 1 января 2026 года</p>
+                        
+                        <h4>1. Общие положения</h4>
+                        <p>StarsPayers - сервис для покупки и обмена Telegram Stars.</p>
+                        
+                        <h4>2. Курс обмена</h4>
+                        <p>1 Telegram Star = 1.1 RUB. Курс фиксированный и может изменяться с уведомлением пользователей.</p>
+                        
+                        <h4>3. Покупка Stars</h4>
+                        <p>Минимальная покупка: 10 Stars. Максимальная покупка: 100,000 Stars.</p>
+                        
+                        <h4>4. Комиссии</h4>
+                        <p>Комиссия за покупку: 1.5% от суммы.</p>
+                        <p>Срок обработки заявок: 1-7 рабочих дней.</p>
+                        
+                        <h4>5. Контакты</h4>
+                        <p>Поддержка: starspayers@mail.ru</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="paymentModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">Оплата через ЮMoney</div>
+                    <button class="modal-close" onclick="closeModal('paymentModal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center" style="padding: 20px 0;">
+                        <i class="fas fa-external-link-alt" style="font-size: 64px; color: var(--tg-text-color); margin-bottom: 24px; animation: float 3s infinite ease-in-out;"></i>
+                        <h3 style="margin-bottom: 20px; font-size: 24px;">Переход на страницу оплаты</h3>
+                        <p style="color: var(--tg-secondary-text-color); margin-bottom: 28px; font-size: 16px;">
+                            Вы будете перенаправлены на страницу ЮMoney для завершения платежа.
+                        </p>
+                        <div style="background: var(--tg-secondary-bg-color); padding: 20px; border-radius: var(--radius-md); margin-bottom: 28px; border: 2px solid var(--tg-border-color);">
+                            <div style="font-weight: 700; margin-bottom: 12px; font-size: 15px;">Номер карты для чека:</div>
+                            <div style="font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 600; letter-spacing: 2px;" id="payment-card-number">**** **** **** ****</div>
+                            <div style="font-weight: 700; margin-top: 16px; font-size: 15px;">Сумма пополнения:</div>
+                            <div style="font-size: 24px; font-weight: 800; color: var(--success-color); margin-top: 8px;" id="payment-amount">0.00 ₽</div>
+                        </div>
+                        <button class="btn glow" onclick="redirectToPayment()">
+                            <i class="fas fa-external-link-alt"></i>
+                            Перейти к оплате
+                        </button>
+                        <button class="btn btn-secondary mt-3" onclick="closeModal('paymentModal')">
+                            Отмена
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <script>
-        // [Весь JavaScript код остается таким же до функции showRouletteResult]
-
-        function showRouletteResult(prize) {
-            const resultElement = document.getElementById('roulette-result');
-            const resultIcon = document.getElementById('roulette-result-icon');
-            const resultTitle = document.getElementById('roulette-result-title');
-            const resultDescription = document.getElementById('roulette-result-description');
-            const prizeElement = document.getElementById('roulette-prize');
+        <div id="editBalanceModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">Изменение баланса пользователя</div>
+                    <button class="modal-close" onclick="closeModal('editBalanceModal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div id="edit-balance-info" style="margin-bottom: 28px;">
+                        <div style="background: var(--tg-secondary-bg-color); padding: 20px; border-radius: var(--radius-md); border: 2px solid var(--tg-border-color);">
+                            <div style="margin-bottom: 12px; font-size: 16px;"><strong>Пользователь:</strong> <span id="edit-user-name">-</span></div>
+                            <div style="margin-bottom: 12px; font-size: 16px;"><strong>Username:</strong> <span id="edit-user-username">-</span></div>
+                            <div style="font-size: 18px; font-weight: 700;"><strong>Текущий баланс:</strong> <span id="edit-current-balance">0.00 ₽</span></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Новый баланс (₽)</label>
+                        <input type="number" class="form-input" id="new-balance-input" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Причина изменения (опционально)</label>
+                        <input type="text" class="form-input" id="balance-change-reason" placeholder="Например: Бонус за активность">
+                    </div>
+                    <button class="btn btn-success" onclick="saveUserBalance()">
+                        <i class="fas fa-save"></i>
+                        Сохранить изменения
+                    </button>
+                    <button class="btn btn-secondary mt-3" onclick="closeModal('editBalanceModal')">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="notification" class="notification">
+            <div class="notification-icon" id="notification-icon">★</div>
+            <div class="notification-content">
+                <div class="notification-title" id="notification-title">Уведомление</div>
+                <p class="notification-text" id="notification-text">Текст уведомления</p>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="header">
+                <div class="logo">
+                    <div class="logo-icon">★</div>
+                    <span>StarsPayers</span>
+                </div>
+                <div class="user-info">
+                    <div class="balance" id="balance">0<span class="balance-currency">₽</span></div>
+                </div>
+            </div>
             
-            // Сначала списываем стоимость рулетки
-            userBalance -= ROULETTE_COST;
-            updateBalance();
-            
-            // Добавляем транзакцию о списании
-            addTransaction({
-                type: 'roulette_spin',
-                amount: -ROULETTE_COST,
-                stars: 30,
-                status: 'completed',
-                description: `Спин рулетки (30 Stars)`
-            });
-            
-            if (prize.type === 'nothing') {
-                resultIcon.innerHTML = '';
-                resultTitle.textContent = 'Увы...';
-                resultDescription.textContent = 'В этот раз не повезло. Попробуйте еще раз!';
-                prizeElement.textContent = 'Ничего';
-                prizeElement.style.color = 'var(--tg-secondary-text-color)';
+            <div class="main-content">
+                <div class="rate-info">
+                    <div class="rate-title">Курс Telegram Stars</div>
+                    <div class="rate-value">1 STAR = 1.1 ₽</div>
+                </div>
                 
-                showNotification('Рулетка', 'К сожалению, вы ничего не выиграли', 'info');
+                <div class="tabs" id="main-tabs">
+                    <button class="tab active" onclick="showSection('main')">Главное меню</button>
+                    <button class="tab" onclick="showSection('topup')">Пополнить баланс</button>
+                    <button class="tab" onclick="showSection('history')">История</button>
+                    <button class="tab" onclick="showSection('about')">О сервисе</button>
+                </div>
+                
+                <div id="main-section" class="section active">
+                    <div class="section-title">
+                        <i class="fas fa-home"></i>
+                        <span>Главное меню</span>
+                    </div>
+                    
+                    <div class="main-menu">
+                        <div class="menu-card" onclick="showSection('buy')">
+                            <div class="menu-card-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="menu-card-title">Купить Telegram Stars</div>
+                            <div class="menu-card-description">
+                                Приобретайте Telegram Stars по выгодному курсу для использования в Telegram
+                            </div>
+                        </div>
+                        
+                        <div class="menu-card" onclick="showSection('roulette')">
+                            <div class="menu-card-icon">
+                                <i class="fas fa-dice"></i>
+                            </div>
+                            <div class="menu-card-title">Рулетка</div>
+                            <div class="menu-card-description">
+                                Крутите колесо за 30 Stars. Шанс 50/50: выиграйте NFT или ничего
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="buy-section" class="section hidden">
+                    <div class="section-title">
+                        <i class="fas fa-star"></i>
+                        <span>Покупка Telegram Stars</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                    
+                    <div class="calculator">
+                        <div class="calc-btn active" onclick="setStarsAmount(100)">100</div>
+                        <div class="calc-btn" onclick="setStarsAmount(500)">500</div>
+                        <div class="calc-btn" onclick="setStarsAmount(1000)">1000</div>
+                        <div class="calc-btn" onclick="setStarsAmount(5000)">5000</div>
+                    </div>
+                    
+                    <form id="buy-form">
+                        <div class="form-group">
+                            <label class="form-label">Количество Stars</label>
+                            <input type="number" class="form-input" id="stars-amount" placeholder="Введите количество" min="100" max="100000" value="100" required>
+                            <span class="form-hint">Минимум: 100 Stars, максимум: 100,000 Stars</span>
+                        </div>
+                        
+                        <div class="calculation">
+                            <div class="calculation-row">
+                                <span>Стоимость Stars:</span>
+                                <span id="stars-cost">110.00 ₽</span>
+                            </div>
+                            <div class="calculation-row">
+                                <span>Комиссия (1.5%):</span>
+                                <span id="commission">1.65 ₽</span>
+                            </div>
+                            <div class="calculation-row total">
+                                <span>Итого к оплате:</span>
+                                <span id="total-cost">111.65 ₽</span>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">
+                            <i class="fas fa-shopping-cart"></i>
+                            Купить Stars
+                        </button>
+                    </form>
+                    
+                    <div id="buy-result" class="section mt-4 hidden">
+                        <div class="section-title">
+                            <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                            <span>Stars куплены!</span>
+                        </div>
+                        <div class="stars-display">
+                            <i class="fas fa-star star-icon"></i>
+                            <span id="purchased-stars">100</span>
+                            <span>Stars</span>
+                        </div>
+                        <div style="text-align: center; margin-bottom: 28px; color: var(--tg-secondary-text-color); font-size: 17px;">
+                            Баланс успешно пополнен Telegram Stars
+                        </div>
+                        <button class="btn btn-secondary" onclick="showSection('history')">
+                            <i class="fas fa-history"></i>
+                            Посмотреть историю
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="roulette-section" class="section hidden">
+                    <div class="section-title">
+                        <i class="fas fa-dice"></i>
+                        <span>Рулетка</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                    
+                    <div class="roulette-container">
+                        <div class="roulette-wheel">
+                            <div class="roulette-wheel-inner" id="roulette-wheel">
+                                <!-- Рулетка будет отрисована через JS -->
+                            </div>
+                            <div class="roulette-marker"></div>
+                        </div>
+                        
+                        <div class="roulette-cost">
+                            <i class="fas fa-star"></i> 30 Stars за спин
+                        </div>
+                        
+                        <div style="margin-bottom: 28px; color: var(--tg-secondary-text-color); font-size: 16px;">
+                            <p>Шанс выигрыша NFT: 50%</p>
+                            <p>Стоимость NFT: 600 Stars</p>
+                        </div>
+                        
+                        <button class="btn btn-roulette" id="spin-button" onclick="spinRoulette()">
+                            <i class="fas fa-redo"></i>
+                            Крутить рулетку
+                        </button>
+                    </div>
+                    
+                    <div id="roulette-result" class="roulette-result">
+                        <div class="roulette-result-icon" id="roulette-result-icon"></div>
+                        <div class="roulette-result-title" id="roulette-result-title">Поздравляем!</div>
+                        <div class="roulette-result-description" id="roulette-result-description">
+                            Вы выиграли ценный приз!
+                        </div>
+                        <div class="roulette-prize" id="roulette-prize">600 Stars NFT</div>
+                        <button class="btn btn-success" onclick="closeRouletteResult()">
+                            <i class="fas fa-check"></i>
+                            Отлично!
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="topup-section" class="section hidden">
+                    <div class="section-title">
+                        <i class="fas fa-wallet"></i>
+                        <span>Пополнение баланса</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                    
+                    <form id="topup-form">
+                        <div class="form-group">
+                            <label class="form-label">Сумма пополнения (₽)</label>
+                            <input type="number" class="form-input" id="topup-amount" placeholder="Введите сумму" min="10" step="0.01" required>
+                            <span class="form-hint">Минимальная сумма: 10 ₽</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Номер банковской карты</label>
+                            <input type="text" class="form-input" id="topup-card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                            <span class="form-hint">Введите 16-19 цифр номера карты для оплаты</span>
+                        </div>
+                        
+                        <button type="submit" class="btn">
+                            <i class="fas fa-credit-card"></i>
+                            Создать заявку и оплатить
+                        </button>
+                    </form>
+                    
+                    <div id="topup-result" class="section mt-4 hidden">
+                        <div class="section-title">
+                            <i class="fas fa-clock" style="color: var(--warning-color);"></i>
+                            <span>Заявка на пополнение создана</span>
+                        </div>
+                        <div style="text-align: center; margin-bottom: 28px;">
+                            <i class="fas fa-check-circle" style="font-size: 64px; color: var(--success-color); margin-bottom: 20px; animation: fadeIn 1s ease;"></i>
+                            <div style="font-size: 22px; font-weight: 700; margin-bottom: 16px; letter-spacing: 1px;">
+                                Заявка №<span id="topup-request-id">0001</span>
+                            </div>
+                            <div style="color: var(--tg-secondary-text-color); margin-bottom: 12px; font-size: 18px;">
+                                Сумма: <strong id="topup-result-amount">0.00 ₽</strong>
+                            </div>
+                            <div style="color: var(--tg-secondary-text-color); margin-bottom: 28px; font-size: 16px;">
+                                После оплаты баланс будет пополнен после проверки оплаты администратором
+                            </div>
+                            <button class="btn btn-secondary" onclick="showSection('history')">
+                                <i class="fas fa-history"></i>
+                                Посмотреть историю заявок
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="history-section" class="section hidden">
+                    <div class="section-title">
+                        <i class="fas fa-history"></i>
+                        <span>История операций</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                    
+                    <div id="history-content">
+                        <div class="empty-state">
+                            <i class="fas fa-star"></i>
+                            <p>История операций пуста</p>
+                            <p class="text-muted mt-2">Купите свои первые Telegram Stars</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="admin-section" class="section hidden">
+                    <div class="section-title">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Админ панель</span>
+                        <span style="font-size: 14px; color: var(--tg-secondary-text-color); margin-left: auto;">
+                            Пользователь: <strong id="admin-username">@iwnel</strong>
+                        </span>
+                    </div>
+                    
+                    <div class="tabs" style="margin-bottom: 20px;">
+                        <button class="tab active" onclick="showAdminSection('stats')">Статистика</button>
+                        <button class="tab" onclick="showAdminSection('transactions')">Транзакции</button>
+                        <button class="tab" onclick="showAdminSection('users')">Пользователи</button>
+                    </div>
+                    
+                    <div id="admin-stats-section">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-users">0</div>
+                                <div class="stat-label">Всего пользователей</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-transactions">0</div>
+                                <div class="stat-label">Всего транзакций</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-stars">0</div>
+                                <div class="stat-label">Продано Stars</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-revenue">0 ₽</div>
+                                <div class="stat-label">Общая выручка</div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 28px;">
+                            <button class="btn btn-success" onclick="loadAdminStats()" style="width: auto; padding: 16px 32px;">
+                                <i class="fas fa-sync-alt"></i> Обновить статистику
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="admin-transactions-section" class="hidden">
+                        <div class="mb-4" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="loadAdminTransactions('all')" style="flex: 1; min-width: 140px;">
+                                Все транзакции
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadAdminTransactions('stars')" style="flex: 1; min-width: 140px;">
+                                Покупки Stars
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadAdminTransactions('topup')" style="flex: 1; min-width: 140px;">
+                                Пополнения
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadAdminTransactions('roulette')" style="flex: 1; min-width: 140px;">
+                                Рулетка
+                            </button>
+                        </div>
+                        
+                        <div id="admin-transactions-content">
+                            <div class="empty-state">
+                                <i class="fas fa-database"></i>
+                                <p>Загрузите транзакции</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="admin-users-section" class="hidden">
+                        <div class="mb-4">
+                            <button class="btn btn-success" onclick="loadAdminUsers()" style="width: auto; padding: 16px 32px;">
+                                <i class="fas fa-sync-alt"></i> Обновить список пользователей
+                            </button>
+                        </div>
+                        
+                        <div id="admin-users-content">
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <p>Загрузите список пользователей</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="about-section" class="section hidden">
+                    <div class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        <span>О сервисе StarsPayers</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                    
+                    <div style="margin-bottom: 28px;">
+                        <h4 style="margin-bottom: 16px; font-size: 20px; font-weight: 700;">Что такое Telegram Stars?</h4>
+                        <p style="color: var(--tg-secondary-text-color); margin-bottom: 20px; font-size: 16px; line-height: 1.8;">
+                            Telegram Stars — это внутренняя валюта Telegram, которую можно использовать для покупки NFT и подарков от Telegram, поддержки авторов и оплаты услуг в ботовых приложениях.
+                        </p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px;">
+                        <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
+                            <i class="fas fa-bolt" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
+                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Низкая цена</div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
+                            <i class="fas fa-shield-alt" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
+                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Защита транзакций</div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
+                            <i class="fas fa-percent" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
+                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Низкая комиссия</div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 24px; background: var(--tg-card-bg); border: 2px solid var(--tg-border-color); border-radius: var(--radius-md); transition: var(--transition);">
+                            <i class="fas fa-headset" style="font-size: 32px; color: var(--tg-text-color); margin-bottom: 12px; transition: var(--transition);"></i>
+                            <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;"> 24/7 Поддержка</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--tg-secondary-bg-color); border-radius: var(--radius-md); padding: 24px; border: 2px solid var(--tg-border-color);">
+                        <h4 style="margin-bottom: 16px; font-size: 18px; font-weight: 700;">Как использовать Stars?</h4>
+                        <ul style="color: var(--tg-secondary-text-color); padding-left: 24px; font-size: 16px;">
+                            <li style="margin-bottom: 12px; padding-left: 8px;">Покупка NFT и подаров</li>
+                            <li style="margin-bottom: 12px; padding-left: 8px;">Поддержка авторов каналов</li>
+                            <li style="margin-bottom: 12px; padding-left: 8px;">Оплата услуг в ботах</li>
+                            <li style="padding-left: 8px;">Покупка премиум-подписок</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Telegram WebApp API
+    let tg = window.Telegram.WebApp;
+    
+    // Firebase конфигурация
+    const firebaseConfig = {
+        apiKey: "AIzaSyBaxoVYKmWtLgmTcM0AS5acQ1TN8qKyFfA",
+        authDomain: "cashcheck-7e5c6.firebaseapp.com",
+        projectId: "cashcheck-7e5c6",
+        storageBucket: "cashcheck-7e5c6.firebasestorage.app",
+        messagingSenderId: "706696825244",
+        appId: "1:706696825244:web:e8de79e5cdae5df9606059"
+    };
+    
+    // Инициализация Firebase
+    let app, db;
+    let firebaseInitialized = false;
+    
+    // Глобальные переменные
+    let currentUser = null;
+    let userBalance = 0;
+    let userTransactions = [];
+    const STAR_RATE = 1.1;
+    const ROULETTE_COST = 30 * STAR_RATE;
+    const NFT_VALUE = 600 * STAR_RATE;
+    let currentTopupCard = '';
+    let currentTopupAmount = 0;
+    let isAdmin = false;
+    let editingUserId = null;
+    let isRouletteSpinning = false;
+    
+    // Функция для создания частиц
+    function createParticles() {
+        const particlesContainer = document.getElementById('particles');
+        if (!particlesContainer) return;
+        
+        const particleCount = 20;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 3 + 1;
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            const delay = Math.random() * 5;
+            const duration = Math.random() * 10 + 10;
+            
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${x}%`;
+            particle.style.top = `${y}%`;
+            particle.style.animation = `float ${duration}s ${delay}s infinite ease-in-out`;
+            particle.style.opacity = Math.random() * 0.5 + 0.1;
+            
+            particlesContainer.appendChild(particle);
+        }
+    }
+    
+    // Анимация загрузки - ФИКСИРОВАННАЯ ВЕРСИЯ
+    function simulateLoading() {
+        const progressBar = document.getElementById('progress-bar');
+        let progress = 0;
+        
+        const interval = setInterval(() => {
+            progress += 10;
+            progressBar.style.width = `${progress}%`;
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                
+                // Скрываем прелоадер через 500мс после заполнения
+                setTimeout(() => {
+                    const preloader = document.getElementById('preloader');
+                    preloader.classList.add('hidden');
+                    
+                    document.querySelector('.content-wrapper').style.opacity = '1';
+                    document.querySelector('.content-wrapper').style.transform = 'translateY(0)';
+                }, 300);
+            }
+        }, 100);
+    }
+    
+    // Основные функции
+    function initTheme() {
+        if (tg.colorScheme === 'dark') {
+            document.body.classList.add('theme-dark');
+        }
+        
+        tg.onEvent('themeChanged', () => {
+            if (tg.colorScheme === 'dark') {
+                document.body.classList.add('theme-dark');
             } else {
-                // НЕ добавляем выигрыш на баланс - NFT будет выдан администратором
-                resultIcon.innerHTML = '';
-                resultTitle.textContent = 'Поздравляем!';
-                resultDescription.textContent = 'Вы выиграли NFT 600 Stars!';
-                prizeElement.textContent = `NFT 600 Stars`;
-                prizeElement.style.color = 'var(--tg-button-color)';
+                document.body.classList.remove('theme-dark');
+            }
+        });
+    }
+    
+    function showNotification(title, message, type = 'info') {
+        const notification = document.getElementById('notification');
+        const titleElement = document.getElementById('notification-title');
+        const textElement = document.getElementById('notification-text');
+        const iconElement = document.getElementById('notification-icon');
+        
+        titleElement.textContent = title;
+        textElement.textContent = message;
+        
+        notification.classList.remove('show');
+        notification.classList.remove('hide');
+        
+        notification.style.borderLeft = '';
+        iconElement.style.background = '';
+        iconElement.style.color = '';
+        
+        switch(type) {
+            case 'success':
+                iconElement.innerHTML = '★';
+                notification.style.borderLeft = '4px solid var(--tg-button-color)';
+                iconElement.style.background = 'rgba(0, 0, 0, 0.1)';
+                iconElement.style.color = 'var(--tg-button-color)';
+                break;
+            case 'error':
+                iconElement.innerHTML = '★';
+                notification.style.borderLeft = '4px solid var(--error-color)';
+                iconElement.style.background = 'rgba(239, 68, 68, 0.1)';
+                iconElement.style.color = 'var(--error-color)';
+                break;
+            case 'warning':
+                iconElement.innerHTML = '★';
+                notification.style.borderLeft = '4px solid var(--warning-color)';
+                iconElement.style.background = 'rgba(245, 158, 11, 0.1)';
+                iconElement.style.color = 'var(--warning-color)';
+                break;
+            default:
+                iconElement.innerHTML = '★';
+                notification.style.borderLeft = '4px solid var(--tg-button-color)';
+                iconElement.style.background = 'rgba(0, 0, 0, 0.1)';
+                iconElement.style.color = 'var(--tg-text-color)';
+        }
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+        }, 3000);
+    }
+    
+    function updateBalance() {
+        const balanceElement = document.getElementById('balance');
+        if (balanceElement) {
+            const formattedBalance = userBalance.toFixed(2).replace('.', ',');
+            balanceElement.innerHTML = `${formattedBalance}<span class="balance-currency">₽</span>`;
+            
+            balanceElement.classList.add('glow');
+            setTimeout(() => {
+                balanceElement.classList.remove('glow');
+            }, 1000);
+        }
+    }
+    
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(section => {
+            if (!section.classList.contains('hidden')) {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    section.classList.add('hidden');
+                    section.style.opacity = '';
+                    section.style.transform = '';
+                }, 300);
+            }
+        });
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        const targetSection = document.getElementById(`${sectionId}-section`);
+        if (targetSection) {
+            setTimeout(() => {
+                targetSection.classList.remove('hidden');
+                targetSection.classList.add('active');
                 
-                // Добавляем транзакцию о выигрыше NFT (без зачисления денег)
-                addTransaction({
-                    type: 'roulette_win_nft',
-                    amount: 0,
-                    stars: 600,
-                    status: 'pending',
-                    description: `Выигрыш в рулетке: NFT 600 Stars (будет выдан администратором)`
-                });
+                setTimeout(() => {
+                    targetSection.style.opacity = '1';
+                    targetSection.style.transform = 'translateY(0)';
+                }, 50);
+            }, 300);
+        }
+        
+        const tabButtons = document.querySelectorAll('.tab');
+        tabButtons.forEach((tab) => {
+            if (tab.getAttribute('onclick')?.includes(sectionId)) {
+                tab.classList.add('active');
+            }
+        });
+        
+        if (sectionId === 'history') {
+            updateHistory();
+        } else if (sectionId === 'admin' && isAdmin) {
+            loadAdminStats();
+            showAdminSection('stats');
+        }
+    }
+    
+    function showAdminSection(sectionName) {
+        ['stats', 'transactions', 'users'].forEach(section => {
+            const elem = document.getElementById(`admin-${section}-section`);
+            if (elem && !elem.classList.contains('hidden')) {
+                elem.style.opacity = '0';
+                setTimeout(() => {
+                    elem.classList.add('hidden');
+                    elem.style.opacity = '';
+                }, 300);
+            }
+        });
+        
+        document.querySelectorAll('#admin-section .tabs .tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        const targetSection = document.getElementById(`admin-${sectionName}-section`);
+        if (targetSection) {
+            setTimeout(() => {
+                targetSection.classList.remove('hidden');
                 
-                showNotification('Поздравляем!', 'Вы выиграли NFT 600 Stars! Администратор свяжется с вами для выдачи.', 'success');
+                setTimeout(() => {
+                    targetSection.style.opacity = '1';
+                }, 50);
+            }, 300);
+        }
+        
+        document.querySelectorAll('#admin-section .tabs .tab').forEach((tab) => {
+            if (tab.getAttribute('onclick')?.includes(sectionName)) {
+                tab.classList.add('active');
+            }
+        });
+        
+        if (sectionName === 'transactions') {
+            loadAdminTransactions('all');
+        } else if (sectionName === 'users') {
+            loadAdminUsers();
+        }
+    }
+    
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                document.body.style.overflow = 'auto';
+            }, 400);
+        }
+    }
+    
+    function updateStarsCost() {
+        const starsInput = document.getElementById('stars-amount');
+        let stars = parseInt(starsInput.value) || 0;
+        
+        if (stars < 10) stars = 10;
+        if (stars > 100000) stars = 100000;
+        
+        const cost = stars * STAR_RATE;
+        const commission = cost * 0.015;
+        const total = cost + commission;
+        
+        document.getElementById('stars-cost').textContent = cost.toFixed(2).replace('.', ',') + ' ₽';
+        document.getElementById('commission').textContent = commission.toFixed(2).replace('.', ',') + ' ₽';
+        document.getElementById('total-cost').textContent = total.toFixed(2).replace('.', ',') + ' ₽';
+    }
+    
+    function setStarsAmount(amount) {
+        document.getElementById('stars-amount').value = amount;
+        updateStarsCost();
+        
+        document.querySelectorAll('.calc-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+    
+    function animateValue(elementId, start, end, duration) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            
+            if (elementId.includes('revenue')) {
+                element.textContent = value.toFixed(2).replace('.', ',') + ' ₽';
+            } else {
+                element.textContent = value.toLocaleString();
             }
             
-            resultElement.classList.add('show');
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+    
+    // Рулетка
+    function spinRoulette() {
+        if (isRouletteSpinning) return;
+        
+        if (userBalance < ROULETTE_COST) {
+            showNotification('Ошибка', `Недостаточно средств. Нужно ${ROULETTE_COST.toFixed(2)} ₽ (30 Stars)`, 'error');
+            return;
         }
-
-        // [Остальной JavaScript код остается таким же]
-        </script>
-    </div>
+        
+        isRouletteSpinning = true;
+        const spinButton = document.getElementById('spin-button');
+        spinButton.disabled = true;
+        spinButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Крутим...';
+        
+        const random = Math.random() * 100;
+        let prize;
+        
+        if (random <= 50) {
+            prize = { type: 'nft', name: 'NFT 600 Stars', stars: 600, probability: 50 };
+        } else {
+            prize = { type: 'nothing', name: 'Ничего', stars: 0, probability: 50 };
+        }
+        
+        const rouletteWheel = document.getElementById('roulette-wheel');
+        const spins = 5 + Math.random() * 2;
+        const extraRotation = Math.random() * 360;
+        
+        rouletteWheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+        rouletteWheel.style.transform = `rotate(${spins * 360 + extraRotation}deg)`;
+        
+        setTimeout(() => {
+            isRouletteSpinning = false;
+            spinButton.disabled = false;
+            spinButton.innerHTML = '<i class="fas fa-redo"></i> Крутить рулетку';
+            
+            showRouletteResult(prize);
+        }, 3000);
+    }
+    
+    function showRouletteResult(prize) {
+        const resultElement = document.getElementById('roulette-result');
+        const resultIcon = document.getElementById('roulette-result-icon');
+        const resultTitle = document.getElementById('roulette-result-title');
+        const resultDescription = document.getElementById('roulette-result-description');
+        const prizeElement = document.getElementById('roulette-prize');
+        
+        userBalance -= ROULETTE_COST;
+        updateBalance();
+        
+        addTransaction({
+            type: 'roulette_spin',
+            amount: -ROULETTE_COST,
+            stars: 30,
+            status: 'completed',
+            description: `Спин рулетки (30 Stars)`
+        });
+        
+        if (prize.type === 'nothing') {
+            resultIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+            resultTitle.textContent = 'Увы...';
+            resultDescription.textContent = 'В этот раз не повезло. Попробуйте еще раз!';
+            prizeElement.textContent = 'Ничего';
+            prizeElement.style.color = 'var(--tg-secondary-text-color)';
+            
+            showNotification('Рулетка', 'К сожалению, вы ничего не выиграли', 'info');
+        } else {
+            resultIcon.innerHTML = '<i class="fas fa-trophy"></i>';
+            resultTitle.textContent = 'Поздравляем!';
+            resultDescription.textContent = 'Вы выиграли NFT 600 Stars! С вами свяжется администратор для выдачи приза.';
+            prizeElement.textContent = `NFT 600 Stars`;
+            prizeElement.style.color = 'var(--tg-button-color)';
+            
+            addTransaction({
+                type: 'roulette_win_nft',
+                amount: 0,
+                stars: 600,
+                status: 'pending',
+                description: `Выигрыш в рулетке: NFT 600 Stars (будет выдан администратором)`
+            });
+            
+            showNotification('Поздравляем!', 'Вы выиграли NFT 600 Stars! Администратор свяжется с вами для выдачи.', 'success');
+        }
+        
+        resultElement.classList.add('show');
+    }
+    
+    function closeRouletteResult() {
+        document.getElementById('roulette-result').classList.remove('show');
+        
+        const rouletteWheel = document.getElementById('roulette-wheel');
+        rouletteWheel.style.transition = 'none';
+        rouletteWheel.style.transform = 'rotate(0deg)';
+        
+        setTimeout(() => {
+            rouletteWheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+        }, 10);
+    }
+    
+    // Работа с Firebase - УПРОЩЕННАЯ ВЕРСИЯ
+    async function initUser() {
+        try {
+            // Если Firebase не инициализирован, используем демо-режим
+            if (!firebaseInitialized || !db) {
+                console.log("Firebase не доступен, используется демо-режим");
+                initDemoMode();
+                return;
+            }
+            
+            const tgUser = tg.initDataUnsafe?.user;
+            if (!tgUser) {
+                console.log("Пользователь Telegram не найден, используется демо-режим");
+                initDemoMode();
+                return;
+            }
+            
+            const userId = `tg_${tgUser.id}`;
+            currentUser = {
+                id: userId,
+                name: tgUser.first_name || 'Пользователь',
+                telegramId: tgUser.id,
+                username: tgUser.username || null
+            };
+            
+            // Проверка на администратора
+            isAdmin = currentUser.username === 'iwnel';
+            
+            if (isAdmin) {
+                addAdminTab();
+                document.getElementById('admin-username').textContent = `@${currentUser.username}`;
+            }
+            
+            // Загрузка данных пользователя
+            const userDoc = await db.collection('users').doc(userId).get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                userBalance = userData.balance || 0;
+                userTransactions = userData.transactions || [];
+            } else {
+                // Создание нового пользователя
+                const newUser = {
+                    ...currentUser,
+                    balance: 1000, // Начальный баланс для демо
+                    transactions: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    registrationDate: new Date().toISOString()
+                };
+                await db.collection('users').doc(userId).set(newUser);
+                userBalance = 1000;
+                userTransactions = [];
+                showNotification('Добро пожаловать!', 'Вы успешно зарегистрированы', 'success');
+            }
+            
+            updateBalance();
+            updateHistory();
+            
+        } catch (error) {
+            console.error("Ошибка инициализации пользователя:", error);
+            initDemoMode();
+            showNotification('Информация', 'Приложение работает в демо-режиме', 'info');
+        }
+    }
+    
+    // Инициализация демо-режима
+    function initDemoMode() {
+        currentUser = {
+            id: 'demo_user',
+            name: 'Демо Пользователь',
+            telegramId: 123456789,
+            username: 'demo_user'
+        };
+        
+        userBalance = 1000;
+        userTransactions = [
+            {
+                type: 'stars_purchase',
+                amount: -110,
+                stars: 100,
+                status: 'completed',
+                description: 'Покупка 100 Telegram Stars',
+                date: '01.01.2024',
+                time: '12:00'
+            },
+            {
+                type: 'topup_request',
+                amount: 0,
+                topupAmount: 500,
+                status: 'pending',
+                description: 'Заявка на пополнение баланса',
+                date: '02.01.2024',
+                time: '14:30'
+            }
+        ];
+        
+        updateBalance();
+        updateHistory();
+    }
+    
+    function addAdminTab() {
+        const tabsContainer = document.getElementById('main-tabs');
+        
+        const adminTab = document.createElement('button');
+        adminTab.className = 'tab';
+        adminTab.setAttribute('data-admin', 'true');
+        adminTab.onclick = () => {
+            showSection('admin');
+            loadAdminStats();
+        };
+        adminTab.innerHTML = '<i class="fas fa-user-shield"></i> Админ';
+        tabsContainer.appendChild(adminTab);
+    }
+    
+    async function addTransaction(transaction) {
+        if (!currentUser) return null;
+        
+        try {
+            const userId = currentUser.id;
+            const transactionId = 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            const fullTransaction = {
+                ...transaction,
+                id: transactionId,
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleDateString('ru-RU'),
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                userId: userId,
+                userName: currentUser.name,
+                username: currentUser.username,
+                userTelegramId: currentUser.telegramId
+            };
+            
+            // Обновление локального баланса пользователя
+            if (transaction.amount !== undefined) {
+                userBalance += transaction.amount;
+            }
+            
+            // Добавление транзакции в массив пользователя
+            userTransactions.push(fullTransaction);
+            
+            // Сохранение в Firebase, если он доступен
+            if (firebaseInitialized && db) {
+                // Обновление пользователя в Firebase
+                await db.collection('users').doc(userId).update({
+                    balance: userBalance,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Обновление транзакций пользователя
+                await db.collection('users').doc(userId).update({
+                    transactions: firebase.firestore.FieldValue.arrayUnion(fullTransaction)
+                });
+                
+                // Сохранение в общую коллекцию
+                await db.collection('all_transactions').doc(transactionId).set({
+                    ...fullTransaction,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            
+            updateBalance();
+            updateHistory();
+            
+            return fullTransaction;
+            
+        } catch (error) {
+            console.error("Ошибка транзакции:", error);
+            // Даже если Firebase недоступен, обновляем локально
+            if (transaction.amount !== undefined) {
+                userBalance += transaction.amount;
+                updateBalance();
+                updateHistory();
+            }
+            return null;
+        }
+    }
+    
+    async function buyStars(starsAmount) {
+        try {
+            const cost = starsAmount * STAR_RATE;
+            const commission = cost * 0.015;
+            const total = cost + commission;
+            
+            if (total > userBalance) {
+                throw new Error('Недостаточно средств на балансе');
+            }
+            
+            const transaction = await addTransaction({
+                type: 'stars_purchase',
+                amount: -total,
+                stars: starsAmount,
+                cost: cost,
+                commission: commission,
+                total: total,
+                status: 'completed',
+                description: `Покупка ${starsAmount} Telegram Stars`
+            });
+            
+            return {
+                success: true,
+                stars: starsAmount,
+                cost: cost,
+                commission: commission,
+                total: total,
+                transaction: transaction
+            };
+            
+        } catch (error) {
+            console.error('Ошибка покупки:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    
+    async function createTopupRequest(cardNumber, amount) {
+        try {
+            const cleanCardNumber = cardNumber.replace(/\s/g, '');
+            
+            if (cleanCardNumber.length < 16 || cleanCardNumber.length > 19 || !/^\d+$/.test(cleanCardNumber)) {
+                throw new Error('Неверный номер карты');
+            }
+            
+            if (amount < 10) {
+                throw new Error('Минимальная сумма пополнения: 10 ₽');
+            }
+            
+            const maskedCard = '**** **** **** ' + cleanCardNumber.slice(-4);
+            
+            const transaction = await addTransaction({
+                type: 'topup_request',
+                amount: 0,
+                cardNumber: cleanCardNumber,
+                maskedCard: maskedCard,
+                topupAmount: amount,
+                status: 'pending',
+                description: `Заявка на пополнение баланса на ${amount.toFixed(2)} ₽`
+            });
+            
+            currentTopupCard = cleanCardNumber;
+            currentTopupAmount = amount;
+            
+            return {
+                success: true,
+                requestId: transaction.id,
+                cardNumber: cleanCardNumber,
+                maskedCard: maskedCard,
+                amount: amount,
+                transaction: transaction
+            };
+            
+        } catch (error) {
+            console.error('Ошибка создания заявки:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    
+    function updateHistory() {
+        const historyContainer = document.getElementById('history-content');
+        if (!historyContainer) return;
+        
+        if (userTransactions.length === 0) {
+            historyContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-star"></i>
+                    <p>История операций пуста</p>
+                    <p style="color: var(--tg-secondary-text-color); margin-top: 12px;">Совершите первую операцию</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const sortedTransactions = [...userTransactions].sort((a, b) => {
+            return new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
+        });
+        
+        let html = '<div class="history-list">';
+        
+        sortedTransactions.forEach((transaction, index) => {
+            const delay = index * 0.1;
+            
+            if (transaction.type === 'stars_purchase') {
+                const totalCost = Math.abs(transaction.total || transaction.amount || 0);
+                html += `
+                    <div class="history-item" style="animation-delay: ${delay}s;">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-star" style="color: var(--tg-button-color);"></i>
+                                Покупка Telegram Stars
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.stars || 0} Stars • ${totalCost.toFixed(2)} ₽
+                            </div>
+                            <div class="history-status status-success">
+                                Завершено
+                            </div>
+                        </div>
+                        <div class="history-amount negative">
+                            -${totalCost.toFixed(2)} ₽
+                        </div>
+                    </div>
+                `;
+            } else if (transaction.type === 'topup_request') {
+                const amount = transaction.topupAmount || 0;
+                html += `
+                    <div class="history-item" style="animation-delay: ${delay}s;">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-credit-card"></i>
+                                Заявка на пополнение
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-subtitle">
+                                Карта: ${transaction.maskedCard || '**** **** **** ****'}
+                            </div>
+                            <div class="history-subtitle">
+                                Сумма: ${amount.toFixed(2)} ₽
+                            </div>
+                            <div class="history-status status-pending">
+                                Ожидание оплаты
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 14px; color: var(--tg-secondary-text-color);">
+                                ID: ${transaction.id ? transaction.id.substring(0, 8) : 'N/A'}
+                            </div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--warning-color); margin-top: 8px;">
+                                Ожидает
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (transaction.type === 'roulette_win_nft') {
+                html += `
+                    <div class="history-item" style="animation-delay: ${delay}s;">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-trophy" style="color: var(--tg-button-color);"></i>
+                                Выигрыш NFT в рулетке
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-subtitle">
+                                NFT 600 Stars
+                            </div>
+                            <div class="history-status status-pending">
+                                Ожидает выдачи
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 18px; font-weight: 700; color: var(--tg-button-color);">
+                                NFT
+                            </div>
+                            <div style="font-size: 14px; color: var(--tg-secondary-text-color);">
+                                Будет выдан админом
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (transaction.type === 'roulette_spin') {
+                const starsCost = transaction.stars || 0;
+                const rublesCost = Math.abs(transaction.amount || 0);
+                html += `
+                    <div class="history-item" style="animation-delay: ${delay}s;">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-dice" style="color: var(--tg-text-color);"></i>
+                                Спин рулетки
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-subtitle">
+                                ${starsCost} Stars
+                            </div>
+                            <div class="history-status status-success">
+                                Завершено
+                            </div>
+                        </div>
+                        <div class="history-amount negative">
+                            -${rublesCost.toFixed(2)} ₽
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        html += '</div>';
+        historyContainer.innerHTML = html;
+    }
+    
+    // Админ функции
+    async function loadAdminStats() {
+        if (!isAdmin) {
+            showNotification('Ошибка', 'Нет доступа к админ панели', 'error');
+            return;
+        }
+        
+        try {
+            const statsSection = document.getElementById('admin-stats-section');
+            const originalHTML = statsSection.innerHTML;
+            statsSection.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+            
+            if (!firebaseInitialized || !db) {
+                throw new Error('Firebase не доступен');
+            }
+            
+            const usersSnapshot = await db.collection('users').get();
+            const totalUsers = usersSnapshot.size;
+            
+            const transactionsSnapshot = await db.collection('all_transactions').get();
+            const totalTransactions = transactionsSnapshot.size;
+            
+            let totalStars = 0;
+            let totalRevenue = 0;
+            
+            transactionsSnapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.type === 'stars_purchase') {
+                    totalStars += data.stars || 0;
+                    totalRevenue += Math.abs(data.total || data.amount || 0);
+                }
+            });
+            
+            statsSection.innerHTML = originalHTML;
+            
+            document.getElementById('total-users').textContent = totalUsers.toLocaleString();
+            document.getElementById('total-transactions').textContent = totalTransactions.toLocaleString();
+            document.getElementById('total-stars').textContent = totalStars.toLocaleString();
+            document.getElementById('total-revenue').textContent = totalRevenue.toFixed(2).replace('.', ',') + ' ₽';
+            
+            animateValue('total-users', 0, totalUsers, 500);
+            animateValue('total-transactions', 0, totalTransactions, 500);
+            animateValue('total-stars', 0, totalStars, 500);
+            animateValue('total-revenue', 0, totalRevenue, 500);
+            
+            showNotification('Статистика обновлена', 'Данные успешно загружены', 'success');
+            
+        } catch (error) {
+            console.error('Ошибка загрузки статистики:', error);
+            const statsSection = document.getElementById('admin-stats-section');
+            statsSection.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-users">0</div>
+                        <div class="stat-label">Всего пользователей</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-transactions">0</div>
+                        <div class="stat-label">Всего транзакций</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-stars">0</div>
+                        <div class="stat-label">Продано Stars</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-revenue">0 ₽</div>
+                        <div class="stat-label">Общая выручка</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 28px;">
+                    <button class="btn btn-success" onclick="loadAdminStats()" style="width: auto; padding: 16px 32px;">
+                        <i class="fas fa-sync-alt"></i> Обновить статистику
+                    </button>
+                </div>
+            `;
+            showNotification('Ошибка', 'Не удалось загрузить статистику', 'error');
+        }
+    }
+    
+    async function loadAdminTransactions(filter = 'all') {
+        if (!isAdmin) {
+            showNotification('Ошибка', 'Нет доступа к админ панели', 'error');
+            return;
+        }
+        
+        const transactionsContainer = document.getElementById('admin-transactions-content');
+        transactionsContainer.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+        
+        try {
+            if (!firebaseInitialized || !db) {
+                throw new Error('Firebase не доступен');
+            }
+            
+            let query = db.collection('all_transactions').orderBy('timestamp', 'desc').limit(100);
+            
+            if (filter === 'stars') {
+                query = query.where('type', '==', 'stars_purchase');
+            } else if (filter === 'topup') {
+                query = query.where('type', 'in', ['topup_request', 'topup_completed']);
+            } else if (filter === 'roulette') {
+                query = query.where('type', 'in', ['roulette_win', 'roulette_spin', 'roulette_win_nft']);
+            }
+            
+            const snapshot = await query.get();
+            
+            if (snapshot.empty) {
+                transactionsContainer.innerHTML = '<div class="empty-state"><i class="fas fa-database"></i><p>Транзакций не найдено</p></div>';
+                return;
+            }
+            
+            let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
+            html += '<th>Дата</th>';
+            html += '<th>Пользователь</th>';
+            html += '<th>Тип</th>';
+            html += '<th>Детали</th>';
+            html += '<th>Сумма (₽)</th>';
+            html += '<th>Статус</th>';
+            html += '</tr></thead><tbody>';
+            
+            snapshot.forEach((doc, index) => {
+                const data = doc.data();
+                
+                let dateStr = 'N/A';
+                let timeStr = '';
+                if (data.timestamp) {
+                    const date = new Date(data.timestamp);
+                    dateStr = date.toLocaleDateString('ru-RU');
+                    timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                }
+                
+                const userName = data.userName || 'Неизвестно';
+                const username = data.username ? `@${data.username}` : '';
+                
+                let typeBadge = '';
+                let details = '';
+                let amount = '0.00 ₽';
+                let amountColor = 'var(--tg-text-color)';
+                
+                if (data.type === 'stars_purchase') {
+                    typeBadge = '<span class="transaction-type type-stars">Stars</span>';
+                    details = `${data.stars || 0} Stars`;
+                    amount = `-${Math.abs(data.total || data.amount || 0).toFixed(2)} ₽`;
+                    amountColor = 'var(--error-color)';
+                } else if (data.type === 'topup_request' || data.type === 'topup_completed') {
+                    typeBadge = '<span class="transaction-type type-topup">Пополнение</span>';
+                    const card = data.maskedCard || '**** ****';
+                    const topupAmount = data.topupAmount || 0;
+                    details = `Карта: ${card}`;
+                    amount = `+${topupAmount.toFixed(2)} ₽`;
+                    amountColor = 'var(--success-color)';
+                } else if (data.type === 'roulette_win_nft') {
+                    typeBadge = '<span class="transaction-type type-roulette">Рулетка</span>';
+                    details = `${data.stars || 0} Stars NFT`;
+                    amount = 'NFT';
+                    amountColor = 'var(--tg-button-color)';
+                } else if (data.type === 'roulette_spin') {
+                    typeBadge = '<span class="transaction-type type-roulette">Рулетка</span>';
+                    details = `${data.stars || 0} Stars спин`;
+                    amount = `-${Math.abs(data.amount || 0).toFixed(2)} ₽`;
+                    amountColor = 'var(--error-color)';
+                }
+                
+                let statusBadge = '';
+                if (data.status === 'completed') {
+                    statusBadge = '<span class="history-status status-success">Завершено</span>';
+                } else if (data.status === 'pending') {
+                    statusBadge = '<span class="history-status status-pending">Ожидание</span>';
+                } else if (data.status === 'error') {
+                    statusBadge = '<span class="history-status status-error">Ошибка</span>';
+                }
+                
+                html += `
+                    <tr style="animation-delay: ${index * 0.05}s;">
+                        <td>
+                            <div>${dateStr}</div>
+                            <div style="font-size: 14px; color: var(--tg-secondary-text-color);">${timeStr}</div>
+                        </td>
+                        <td>
+                            <div>${userName}</div>
+                            <div style="font-size: 14px; color: var(--tg-secondary-text-color);">${username}</div>
+                        </td>
+                        <td>${typeBadge}</td>
+                        <td>${details}</td>
+                        <td style="font-weight: 700; color: ${amountColor};">${amount}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            transactionsContainer.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки транзакций:', error);
+            transactionsContainer.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Ошибка загрузки транзакций</p></div>';
+            showNotification('Ошибка', 'Не удалось загрузить транзакции', 'error');
+        }
+    }
+    
+    async function loadAdminUsers() {
+        if (!isAdmin) {
+            showNotification('Ошибка', 'Нет доступа к админ панели', 'error');
+            return;
+        }
+        
+        const usersContainer = document.getElementById('admin-users-content');
+        usersContainer.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+        
+        try {
+            if (!firebaseInitialized || !db) {
+                throw new Error('Firebase не доступен');
+            }
+            
+            const usersSnapshot = await db.collection('users').get();
+            
+            if (usersSnapshot.empty) {
+                usersContainer.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Пользователей не найдено</p></div>';
+                return;
+            }
+            
+            let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
+            html += '<th>ID</th>';
+            html += '<th>Имя</th>';
+            html += '<th>Username</th>';
+            html += '<th>Баланс</th>';
+            html += '<th>Регистрация</th>';
+            html += '<th>Действия</th>';
+            html += '</tr></thead><tbody>';
+            
+            usersSnapshot.forEach((doc, index) => {
+                const user = doc.data();
+                const userId = doc.id;
+                const balance = user.balance || 0;
+                
+                let registrationDate = 'N/A';
+                if (user.registrationDate) {
+                    const date = new Date(user.registrationDate);
+                    registrationDate = date.toLocaleDateString('ru-RU');
+                }
+                
+                html += `
+                    <tr style="animation-delay: ${index * 0.05}s;">
+                        <td style="font-family: monospace; font-size: 14px;">${userId.substring(0, 12)}...</td>
+                        <td>${user.name || 'Неизвестно'}</td>
+                        <td>${user.username ? '@' + user.username : '-'}</td>
+                        <td style="font-weight: 700;">${balance.toFixed(2)} ₽</td>
+                        <td>${registrationDate}</td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;" onclick="editUserBalance('${userId}', '${user.name || ''}', '${user.username || ''}', ${balance})">
+                                <i class="fas fa-edit"></i> Изменить баланс
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            usersContainer.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки пользователей:', error);
+            usersContainer.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Ошибка загрузки пользователей</p></div>';
+            showNotification('Ошибка', 'Не удалось загрузить пользователей', 'error');
+        }
+    }
+    
+    function editUserBalance(userId, userName, userUsername, currentBalance) {
+        editingUserId = userId;
+        
+        document.getElementById('edit-user-name').textContent = userName;
+        document.getElementById('edit-user-username').textContent = userUsername ? '@' + userUsername : '-';
+        document.getElementById('edit-current-balance').textContent = currentBalance.toFixed(2) + ' ₽';
+        document.getElementById('new-balance-input').value = currentBalance.toFixed(2);
+        document.getElementById('balance-change-reason').value = '';
+        
+        openModal('editBalanceModal');
+    }
+    
+    async function saveUserBalance() {
+        if (!editingUserId || !db) return;
+        
+        const newBalanceInput = document.getElementById('new-balance-input');
+        const reasonInput = document.getElementById('balance-change-reason');
+        
+        const newBalance = parseFloat(newBalanceInput.value);
+        const reason = reasonInput.value.trim();
+        
+        if (isNaN(newBalance)) {
+            showNotification('Ошибка', 'Введите корректное число для баланса', 'error');
+            return;
+        }
+        
+        try {
+            const userDoc = await db.collection('users').doc(editingUserId).get();
+            if (!userDoc.exists) {
+                showNotification('Ошибка', 'Пользователь не найден', 'error');
+                return;
+            }
+            
+            const userData = userDoc.data();
+            const oldBalance = userData.balance || 0;
+            const balanceChange = newBalance - oldBalance;
+            
+            await db.collection('users').doc(editingUserId).update({
+                balance: newBalance,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            const transactionId = 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const transaction = {
+                id: transactionId,
+                type: 'admin_balance_change',
+                amount: balanceChange,
+                oldBalance: oldBalance,
+                newBalance: newBalance,
+                status: 'completed',
+                description: `Изменение баланса администратором`,
+                reason: reason || 'Изменение баланса',
+                adminName: currentUser.name,
+                adminUsername: currentUser.username,
+                userId: editingUserId,
+                userName: userData.name,
+                username: userData.username,
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleDateString('ru-RU'),
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+            };
+            
+            await db.collection('all_transactions').doc(transactionId).set({
+                ...transaction,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            const userTransactions = userData.transactions || [];
+            userTransactions.push(transaction);
+            await db.collection('users').doc(editingUserId).update({
+                transactions: userTransactions
+            });
+            
+            if (currentUser && currentUser.id === editingUserId) {
+                userBalance = newBalance;
+                updateBalance();
+                updateHistory();
+            }
+            
+            showNotification('Успех', `Баланс пользователя изменен на ${newBalance.toFixed(2)} ₽`, 'success');
+            closeModal('editBalanceModal');
+            
+            if (document.getElementById('admin-users-section') && !document.getElementById('admin-users-section').classList.contains('hidden')) {
+                loadAdminUsers();
+            }
+            
+        } catch (error) {
+            console.error('Ошибка сохранения баланса:', error);
+            showNotification('Ошибка', 'Не удалось изменить баланс пользователя', 'error');
+        }
+    }
+    
+    function redirectToPayment() {
+        if (!currentTopupCard || !currentTopupAmount) {
+            showNotification('Ошибка', 'Данные для оплаты не указаны', 'error');
+            return;
+        }
+        
+        const userId = currentUser?.id || 'unknown';
+        
+        localStorage.setItem('last_payment_attempt', JSON.stringify({
+            userId: userId,
+            cardNumber: currentTopupCard,
+            amount: currentTopupAmount,
+            timestamp: new Date().toISOString(),
+            requestId: `TP${Date.now().toString().slice(-6)}`
+        }));
+        
+        const paymentUrl = `https://yoomoney.ru/to/4100117160998714/${currentTopupAmount}?label=topup_${userId}_${currentTopupAmount}`;
+        window.open(paymentUrl, '_blank');
+        
+        closeModal('paymentModal');
+        
+        document.getElementById('topup-result').classList.remove('hidden');
+        document.getElementById('topup-form').style.display = 'none';
+        document.getElementById('topup-request-id').textContent = `TP${Date.now().toString().slice(-6)}`;
+        document.getElementById('topup-result-amount').textContent = currentTopupAmount.toFixed(2) + ' ₽';
+        
+        showNotification('Заявка создана', `Перейдите на страницу ЮMoney для оплаты ${currentTopupAmount.toFixed(2)} ₽`, 'success');
+    }
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            createParticles();
+            
+            simulateLoading();
+            
+            tg.expand();
+            initTheme();
+            
+            // Инициализируем Firebase
+            try {
+                app = firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                firebaseInitialized = true;
+                console.log("Firebase инициализирован");
+            } catch (firebaseError) {
+                console.log("Firebase не инициализирован, используется демо-режим:", firebaseError);
+                firebaseInitialized = false;
+            }
+            
+            // Инициализируем пользователя
+            await initUser();
+            
+            // Обновление стоимости Stars
+            const starsInput = document.getElementById('stars-amount');
+            if (starsInput) {
+                starsInput.addEventListener('input', updateStarsCost);
+                updateStarsCost();
+            }
+            
+            // Форматирование номера карты
+            const cardInput = document.getElementById('topup-card-number');
+            if (cardInput) {
+                cardInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.replace(/(.{4})/g, '$1 ').trim();
+                    e.target.value = value.substring(0, 19);
+                });
+            }
+            
+            // Закрытие модальных окон
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeModal(this.id);
+                    }
+                });
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.show').forEach(modal => {
+                        closeModal(modal.id);
+                    });
+                }
+            });
+            
+        } catch (error) {
+            console.error("Ошибка инициализации:", error);
+            const preloader = document.getElementById('preloader');
+            if (preloader) {
+                preloader.classList.add('hidden');
+            }
+            document.querySelector('.content-wrapper').style.opacity = '1';
+            document.querySelector('.content-wrapper').style.transform = 'translateY(0)';
+            
+            initDemoMode();
+            showNotification('Информация', 'Приложение работает в демо-режиме', 'info');
+        }
+    });
+    
+    // Обработка форм
+    document.getElementById('buy-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
+            return;
+        }
+        
+        const starsInput = document.getElementById('stars-amount');
+        const stars = parseInt(starsInput.value);
+        
+        if (stars < 10 || stars > 100000) {
+            showNotification('Ошибка', 'Количество Stars должно быть от 10 до 100,000', 'error');
+            return;
+        }
+        
+        const cost = stars * STAR_RATE;
+        const commission = cost * 0.015;
+        const total = cost + commission;
+        
+        if (total > userBalance) {
+            showNotification('Ошибка', `Недостаточно средств. Нужно: ${total.toFixed(2)} ₽, доступно: ${userBalance.toFixed(2)} ₽`, 'error');
+            return;
+        }
+        
+        try {
+            const result = await buyStars(stars);
+            
+            if (result.success) {
+                document.getElementById('purchased-stars').textContent = stars;
+                
+                document.getElementById('buy-form').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('buy-form').style.display = 'none';
+                    document.getElementById('buy-result').classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        document.getElementById('buy-result').style.opacity = '1';
+                    }, 50);
+                }, 300);
+                
+                showNotification('Успешно!', `Куплено ${stars} Telegram Stars`, 'success');
+            } else {
+                showNotification('Ошибка', result.error, 'error');
+            }
+            
+        } catch (error) {
+            showNotification('Ошибка', 'Не удалось завершить покупку', 'error');
+        }
+    });
+    
+    document.getElementById('topup-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
+            return;
+        }
+        
+        const amountInput = document.getElementById('topup-amount');
+        const cardInput = document.getElementById('topup-card-number');
+        
+        const amount = parseFloat(amountInput.value);
+        const cardNumber = cardInput.value.replace(/\s/g, '');
+        
+        if (isNaN(amount) || amount < 10) {
+            showNotification('Ошибка', 'Минимальная сумма пополнения: 10 ₽', 'error');
+            return;
+        }
+        
+        if (cardNumber.length < 16 || cardNumber.length > 19 || !/^\d+$/.test(cardNumber)) {
+            showNotification('Ошибка', 'Введите корректный номер карты (16-19 цифр)', 'error');
+            return;
+        }
+        
+        try {
+            const result = await createTopupRequest(cardNumber, amount);
+            
+            if (result.success) {
+                document.getElementById('payment-card-number').textContent = result.maskedCard;
+                document.getElementById('payment-amount').textContent = result.amount.toFixed(2) + ' ₽';
+                openModal('paymentModal');
+            } else {
+                showNotification('Ошибка', result.error, 'error');
+            }
+            
+        } catch (error) {
+            showNotification('Ошибка', 'Не удалось создать заявку', 'error');
+        }
+    });
+    
+    // Вибрация при кликах
+    if (navigator.vibrate) {
+        document.querySelectorAll('button, .tab, .calc-btn, .menu-card').forEach(element => {
+            element.addEventListener('click', function() {
+                navigator.vibrate(10);
+            });
+        });
+    }
+    </script>
 </body>
 </html>
