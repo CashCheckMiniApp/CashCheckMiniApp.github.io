@@ -63,32 +63,28 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            user-select: none;
         }
         
-        html {
-            scroll-behavior: smooth;
+        html, body {
             height: 100%;
-        }
-        
-        body {
+            width: 100%;
+            overflow: hidden;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--tg-bg-color);
             color: var(--tg-text-color);
             line-height: 1.5;
-            min-height: 100vh;
-            transition: var(--transition);
-            background: linear-gradient(135deg, var(--tg-bg-color) 0%, var(--tg-secondary-bg-color) 100%);
-            position: relative;
-            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
-        /* Основной контейнер */
+        /* Основной контейнер с правильной прокруткой */
         .app-container {
-            min-height: 100vh;
+            height: 100vh;
+            height: -webkit-fill-available;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         
         /* Preloader */
@@ -214,17 +210,17 @@
         
         /* Хедер фиксированный */
         .header {
-            position: sticky;
-            top: 0;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px;
+            padding: 12px 16px;
             background: var(--tg-card-bg);
             border-bottom: 1px solid var(--tg-border-color);
             z-index: 100;
             box-shadow: var(--tg-shadow);
+            position: sticky;
+            top: 0;
         }
         
         .logo {
@@ -249,7 +245,6 @@
             font-weight: bold;
             font-size: 18px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-            transition: var(--transition);
         }
         
         .theme-dark .logo-icon {
@@ -261,46 +256,45 @@
             background: var(--tg-button-color);
             border: 1px solid var(--tg-button-color);
             border-radius: var(--radius-md);
-            padding: 10px 16px;
+            padding: 8px 12px;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15px;
             color: var(--tg-button-text-color);
             box-shadow: var(--tg-shadow);
-            min-width: 100px;
+            min-width: 90px;
             text-align: center;
-            transition: var(--transition);
             font-family: 'Roboto Mono', monospace;
             letter-spacing: 0.5px;
         }
         
         .balance-currency {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--tg-button-text-color);
             margin-left: 2px;
             font-weight: 500;
             opacity: 0.9;
         }
         
-        /* Основная прокручиваемая область */
+        /* Основная прокручиваемая область - ИСПРАВЛЕНО */
         .main-content-scroll {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 80px;
+            position: relative;
+            height: calc(100vh - 120px); /* Высота минус хедер и табы */
+        }
+        
+        /* Фикс для iOS */
+        @supports (-webkit-touch-callout: none) {
+            .main-content-scroll {
+                height: -webkit-fill-available;
+            }
         }
         
         .content-wrapper {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: contentReveal 0.6s ease 0.8s forwards;
-        }
-        
-        @keyframes contentReveal {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            min-height: 100%;
+            padding-bottom: 80px;
         }
         
         .container {
@@ -320,6 +314,7 @@
             padding: 8px;
             z-index: 1000;
             box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+            height: 60px;
         }
         
         .bottom-tab {
@@ -328,11 +323,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 12px 8px;
+            padding: 8px 4px;
             border: none;
             background: transparent;
             color: var(--tg-secondary-text-color);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
@@ -340,7 +335,7 @@
         }
         
         .bottom-tab i {
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 4px;
         }
         
@@ -360,7 +355,6 @@
             margin-bottom: 16px;
             border: 1px solid var(--tg-border-color);
             box-shadow: var(--tg-shadow);
-            transition: var(--transition);
         }
         
         .section-title {
@@ -531,7 +525,7 @@
             border-bottom: none;
         }
         
-        /* Рулетка - улучшенная версия */
+        /* Рулетка - ИСПРАВЛЕННАЯ версия */
         .roulette-container {
             text-align: center;
             padding: 16px 0;
@@ -552,7 +546,7 @@
             transform-origin: center;
         }
         
-        .roulette-wheel canvas {
+        #roulette-canvas {
             width: 100%;
             height: 100%;
             border-radius: 50%;
@@ -562,11 +556,11 @@
         
         .roulette-marker {
             position: absolute;
-            top: -16px;
+            top: -20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
-            font-size: 32px;
+            font-size: 36px;
             color: var(--tg-button-color);
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             filter: drop-shadow(0 0 4px rgba(0,0,0,0.3));
@@ -575,7 +569,7 @@
         .roulette-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin: 20px 0;
             padding: 0 10px;
         }
         
@@ -588,7 +582,6 @@
             border: 1px solid var(--tg-border-color);
             font-weight: 600;
             font-size: 14px;
-            transition: var(--transition);
         }
         
         .roulette-label.nft {
@@ -599,22 +592,6 @@
         .roulette-label.nothing {
             color: var(--tg-secondary-text-color);
             margin-left: 10px;
-        }
-        
-        .roulette-label.active {
-            background: var(--tg-button-color);
-            color: var(--tg-button-text-color);
-            transform: translateY(-2px);
-            box-shadow: var(--tg-shadow);
-        }
-        
-        .roulette-label.nft.active {
-            border-color: var(--tg-button-color);
-        }
-        
-        .roulette-label.nothing.active {
-            border-color: var(--tg-secondary-text-color);
-            background: var(--tg-secondary-text-color);
         }
         
         .roulette-cost {
@@ -629,77 +606,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         
-        .roulette-result {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            background: var(--tg-card-bg);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            border: 2px solid var(--tg-border-color);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            z-index: 2000;
-            max-width: 320px;
-            width: 90%;
-            text-align: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            backdrop-filter: blur(10px);
-        }
-        
-        .roulette-result.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translate(-50%, -50%) scale(1);
-        }
-        
-        .roulette-result-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
-            z-index: 1999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .roulette-result-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .roulette-result-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-        
-        .roulette-result-title {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 12px;
-        }
-        
-        .roulette-result-description {
-            font-size: 16px;
-            color: var(--tg-secondary-text-color);
-            margin-bottom: 20px;
-            line-height: 1.4;
-        }
-        
-        .roulette-prize {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--tg-button-color);
-            margin: 16px 0;
-        }
-        
-        /* История операций - компактная */
+        /* История операций */
         .history-list {
             display: flex;
             flex-direction: column;
@@ -714,7 +621,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: var(--transition);
         }
         
         .history-info {
@@ -743,7 +649,7 @@
             min-width: 80px;
         }
         
-        /* Главное меню - компактное */
+        /* Главное меню */
         .main-menu {
             display: grid;
             grid-template-columns: 1fr;
@@ -759,7 +665,6 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            transition: var(--transition);
             cursor: pointer;
         }
         
@@ -774,7 +679,6 @@
             background: var(--tg-button-color);
             color: var(--tg-button-text-color);
             flex-shrink: 0;
-            transition: var(--transition);
         }
         
         .menu-card-content {
@@ -794,83 +698,44 @@
             line-height: 1.4;
         }
         
-        /* Модальные окна - адаптивные */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        
-        .modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal-content {
+        /* Админ панель */
+        .admin-panel {
             background: var(--tg-card-bg);
             border-radius: var(--radius-lg);
-            width: 100%;
-            max-height: 90vh;
-            margin: auto;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--tg-border-color);
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-        }
-        
-        .modal.show .modal-content {
-            transform: translateY(0);
-        }
-        
-        .modal-header {
             padding: 20px;
-            background: var(--tg-button-color);
-            color: var(--tg-button-text-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            margin-bottom: 16px;
+            border: 1px solid var(--tg-border-color);
+            box-shadow: var(--tg-shadow);
         }
         
-        .modal-title {
-            font-size: 18px;
-            font-weight: 700;
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
         }
         
-        .modal-close {
-            background: rgba(0, 0, 0, 0.2);
-            border: none;
-            color: var(--tg-button-text-color);
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .admin-stat {
+            background: var(--tg-secondary-bg-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
         }
         
-        .modal-body {
-            padding: 24px;
-            overflow-y: auto;
-            flex: 1;
+        .admin-stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--tg-text-color);
+            margin-bottom: 4px;
         }
         
-        /* Уведомления - исправленная версия */
+        .admin-stat-label {
+            font-size: 12px;
+            color: var(--tg-secondary-text-color);
+            text-transform: uppercase;
+        }
+        
+        /* Уведомления */
         .notification {
             position: fixed;
             top: 80px;
@@ -929,6 +794,69 @@
             line-height: 1.3;
         }
         
+        /* Модальные окна */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--tg-card-bg);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--tg-border-color);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .modal-close {
+            background: rgba(0, 0, 0, 0.2);
+            border: none;
+            color: var(--tg-button-text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
         /* Состояния */
         .hidden {
             display: none !important;
@@ -959,36 +887,8 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--tg-border-color);
-            border-top-color: var(--tg-button-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        /* Плавная прокрутка для iOS */
-        .main-content-scroll {
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        /* Отключение выделения текста */
-        .no-select {
-            -webkit-user-select: none;
-            user-select: none;
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
         }
         
         /* Адаптивность */
@@ -1045,14 +945,7 @@
             }
             
             .header {
-                padding: 12px;
-            }
-        }
-        
-        /* Высота для мобильных браузеров */
-        @media (max-height: 700px) {
-            .header {
-                padding: 12px 16px;
+                padding: 10px 12px;
             }
             
             .logo {
@@ -1066,28 +959,18 @@
             }
             
             .balance {
-                padding: 8px 12px;
+                padding: 6px 10px;
                 font-size: 14px;
                 min-width: 80px;
             }
-        }
-        
-        /* Fix для прокрутки на iOS */
-        .ios-scroll-fix {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .ios-scroll-fix .main-content-scroll {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            overflow-y: scroll;
-            -webkit-overflow-scrolling: touch;
+            
+            .bottom-tab {
+                font-size: 10px;
+            }
+            
+            .bottom-tab i {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -1104,54 +987,6 @@
         </div>
         <div class="preloader-progress">
             <div class="preloader-progress-bar" id="progress-bar"></div>
-        </div>
-    </div>
-
-    <!-- Модальные окна и оверлеи -->
-    <div id="roulette-result-overlay" class="roulette-result-overlay"></div>
-    <div id="roulette-result" class="roulette-result">
-        <div class="roulette-result-icon" id="roulette-result-icon"></div>
-        <div class="roulette-result-title" id="roulette-result-title">Результат</div>
-        <div class="roulette-result-description" id="roulette-result-description"></div>
-        <div class="roulette-prize" id="roulette-prize"></div>
-        <button class="btn btn-success" onclick="closeRouletteResult()">
-            <i class="fas fa-check"></i>
-            Понятно
-        </button>
-    </div>
-
-    <div id="paymentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Оплата через ЮMoney</div>
-                <button class="modal-close" onclick="closeModal('paymentModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <div style="text-align: center; padding: 10px 0;">
-                    <i class="fas fa-external-link-alt" style="font-size: 48px; color: var(--tg-text-color); margin-bottom: 16px;"></i>
-                    <h3 style="margin-bottom: 12px; font-size: 18px;">Переход на страницу оплаты</h3>
-                    <p style="color: var(--tg-secondary-text-color); margin-bottom: 20px; font-size: 14px;">
-                        Вы будете перенаправлены на страницу ЮMoney для завершения платежа.
-                    </p>
-                    <div style="background: var(--tg-secondary-bg-color); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; border: 1px solid var(--tg-border-color);">
-                        <div style="font-weight: 700; margin-bottom: 8px; font-size: 14px;">Сумма пополнения:</div>
-                        <div style="font-size: 20px; font-weight: 800; color: var(--success-color);" id="payment-amount">0.00 ₽</div>
-                    </div>
-                    <button class="btn glow" onclick="redirectToPayment()">
-                        <i class="fas fa-external-link-alt"></i>
-                        Перейти к оплате
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Уведомление -->
-    <div id="notification" class="notification">
-        <div class="notification-icon" id="notification-icon">★</div>
-        <div class="notification-content">
-            <div class="notification-title" id="notification-title">Уведомление</div>
-            <p class="notification-text" id="notification-text">Текст уведомления</p>
         </div>
     </div>
 
@@ -1208,6 +1043,18 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div class="menu-card" onclick="showSection('topup')">
+                                <div class="menu-card-icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                                <div class="menu-card-content">
+                                    <div class="menu-card-title">Пополнить баланс</div>
+                                    <div class="menu-card-description">
+                                        Пополните баланс для покупки Stars
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1216,9 +1063,6 @@
                         <div class="section-title">
                             <i class="fas fa-star"></i>
                             <span>Покупка Stars</span>
-                            <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 12px; font-size: 12px; width: auto;">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
                         </div>
                         
                         <div class="calculator">
@@ -1262,9 +1106,6 @@
                         <div class="section-title">
                             <i class="fas fa-dice"></i>
                             <span>Рулетка</span>
-                            <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 12px; font-size: 12px; width: auto;">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
                         </div>
                         
                         <div class="roulette-container">
@@ -1276,19 +1117,46 @@
                             </div>
                             
                             <div class="roulette-labels">
-                                <div class="roulette-label nft" id="label-nft">NFT 600 Stars</div>
-                                <div class="roulette-label nothing" id="label-nothing">Ничего</div>
+                                <div class="roulette-label nft">NFT 600 Stars</div>
+                                <div class="roulette-label nothing">Ничего</div>
                             </div>
                             
                             <div class="roulette-cost">
                                 <i class="fas fa-star"></i> 30 Stars за спин
                             </div>
                             
-                            <button class="btn btn-roulette" id="spin-button" onclick="spinRoulette()">
+                            <button class="btn" id="spin-button" onclick="spinRoulette()">
                                 <i class="fas fa-redo"></i>
                                 Крутить рулетку
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Пополнение баланса -->
+                    <div id="topup-section" class="section hidden">
+                        <div class="section-title">
+                            <i class="fas fa-wallet"></i>
+                            <span>Пополнение баланса</span>
+                        </div>
+                        
+                        <form id="topup-form">
+                            <div class="form-group">
+                                <label class="form-label">Сумма пополнения (₽)</label>
+                                <input type="number" class="form-input" id="topup-amount" placeholder="Введите сумму" min="10" step="0.01" required>
+                                <span class="form-hint">Минимальная сумма: 10 ₽</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Номер банковской карты</label>
+                                <input type="text" class="form-input" id="topup-card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                                <span class="form-hint">Введите 16-19 цифр номера карты</span>
+                            </div>
+                            
+                            <button type="submit" class="btn">
+                                <i class="fas fa-credit-card"></i>
+                                Создать заявку на пополнение
+                            </button>
+                        </form>
                     </div>
 
                     <!-- История -->
@@ -1296,9 +1164,6 @@
                         <div class="section-title">
                             <i class="fas fa-history"></i>
                             <span>История операций</span>
-                            <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 12px; font-size: 12px; width: auto;">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
                         </div>
                         
                         <div id="history-content">
@@ -1309,22 +1174,37 @@
                         </div>
                     </div>
 
-                    <!-- О сервисе -->
-                    <div id="about-section" class="section hidden">
+                    <!-- Админ панель -->
+                    <div id="admin-section" class="section hidden">
                         <div class="section-title">
-                            <i class="fas fa-info-circle"></i>
-                            <span>О сервисе</span>
-                            <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 12px; font-size: 12px; width: auto;">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
+                            <i class="fas fa-user-shield"></i>
+                            <span>Админ панель</span>
                         </div>
                         
-                        <div style="margin-bottom: 20px;">
-                            <p style="color: var(--tg-secondary-text-color); font-size: 14px; line-height: 1.5;">
-                                StarsPayers — сервис для покупки и использования Telegram Stars. 
-                                Telegram Stars — это внутренняя валюта Telegram для покупки NFT, 
-                                подарков и поддержки авторов.
-                            </p>
+                        <div class="admin-panel">
+                            <div class="admin-stats">
+                                <div class="admin-stat">
+                                    <div class="admin-stat-value" id="admin-total-users">0</div>
+                                    <div class="admin-stat-label">Пользователи</div>
+                                </div>
+                                <div class="admin-stat">
+                                    <div class="admin-stat-value" id="admin-total-transactions">0</div>
+                                    <div class="admin-stat-label">Транзакции</div>
+                                </div>
+                                <div class="admin-stat">
+                                    <div class="admin-stat-value" id="admin-total-stars">0</div>
+                                    <div class="admin-stat-label">Stars продано</div>
+                                </div>
+                                <div class="admin-stat">
+                                    <div class="admin-stat-value" id="admin-total-revenue">0 ₽</div>
+                                    <div class="admin-stat-label">Выручка</div>
+                                </div>
+                            </div>
+                            
+                            <button class="btn" onclick="loadAdminStats()">
+                                <i class="fas fa-sync-alt"></i>
+                                Обновить статистику
+                            </button>
                         </div>
                     </div>
 
@@ -1346,14 +1226,54 @@
                 <i class="fas fa-dice"></i>
                 <span>Рулетка</span>
             </div>
+            <div class="bottom-tab" onclick="showSection('topup')">
+                <i class="fas fa-wallet"></i>
+                <span>Пополнить</span>
+            </div>
             <div class="bottom-tab" onclick="showSection('history')">
                 <i class="fas fa-history"></i>
                 <span>История</span>
             </div>
-            <div class="bottom-tab" onclick="showSection('about')">
-                <i class="fas fa-info-circle"></i>
-                <span>О нас</span>
+            <div id="admin-tab" class="bottom-tab hidden" onclick="showSection('admin')">
+                <i class="fas fa-user-shield"></i>
+                <span>Админ</span>
             </div>
+        </div>
+    </div>
+
+    <!-- Модальные окна -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Оплата через ЮMoney</div>
+                <button class="modal-close" onclick="closeModal('paymentModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 10px 0;">
+                    <i class="fas fa-external-link-alt" style="font-size: 48px; color: var(--tg-text-color); margin-bottom: 16px;"></i>
+                    <h3 style="margin-bottom: 12px; font-size: 18px;">Переход на страницу оплаты</h3>
+                    <p style="color: var(--tg-secondary-text-color); margin-bottom: 20px; font-size: 14px;">
+                        Вы будете перенаправлены на страницу ЮMoney для завершения платежа.
+                    </p>
+                    <div style="background: var(--tg-secondary-bg-color); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; border: 1px solid var(--tg-border-color);">
+                        <div style="font-weight: 700; margin-bottom: 8px; font-size: 14px;">Сумма пополнения:</div>
+                        <div style="font-size: 20px; font-weight: 800; color: var(--success-color);" id="payment-amount">0.00 ₽</div>
+                    </div>
+                    <button class="btn" onclick="redirectToPayment()">
+                        <i class="fas fa-external-link-alt"></i>
+                        Перейти к оплате
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомление -->
+    <div id="notification" class="notification">
+        <div class="notification-icon" id="notification-icon">★</div>
+        <div class="notification-content">
+            <div class="notification-title" id="notification-title">Уведомление</div>
+            <p class="notification-text" id="notification-text">Текст уведомления</p>
         </div>
     </div>
 
@@ -1381,34 +1301,9 @@
     let userTransactions = [];
     const STAR_RATE = 1.1;
     const ROULETTE_COST = 30 * STAR_RATE;
-    const NFT_VALUE = 600 * STAR_RATE;
-    let currentTopupAmount = 0;
-    let isAdmin = false;
     let isRouletteSpinning = false;
-    let rouletteCanvas, rouletteCtx;
-    
-    // Функция для правильной высоты на мобильных устройствах
-    function setViewportHeight() {
-        let vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-    }
-    
-    // Функция для исправления прокрутки на iOS
-    function fixIOSScroll() {
-        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-            document.body.classList.add('ios-scroll-fix');
-            
-            // Пересчитываем высоту при изменении размера
-            window.addEventListener('resize', function() {
-                const scrollDiv = document.querySelector('.main-content-scroll');
-                if (scrollDiv) {
-                    scrollDiv.style.height = window.innerHeight - 
-                        document.querySelector('.header').offsetHeight - 
-                        document.querySelector('.bottom-tabs').offsetHeight + 'px';
-                }
-            });
-        }
-    }
+    let currentTopupAmount = 0;
+    let currentTopupCard = '';
     
     // Анимация загрузки
     function simulateLoading() {
@@ -1425,18 +1320,79 @@
                 setTimeout(() => {
                     const preloader = document.getElementById('preloader');
                     preloader.classList.add('hidden');
-                    
-                    document.querySelector('.content-wrapper').style.opacity = '1';
-                    document.querySelector('.content-wrapper').style.transform = 'translateY(0)';
-                    
-                    // Восстанавливаем прокрутку после загрузки
-                    document.body.style.overflow = 'auto';
                 }, 300);
             }
         }, 100);
     }
     
-    // Основные функции
+    // Функция для рисования рулетки с секторами
+    function drawRouletteWheel() {
+        const canvas = document.getElementById('roulette-canvas');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = canvas.width / 2 - 10;
+        
+        // Очищаем canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Рисуем первый сектор (NFT) - правая половина
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, Math.PI, 0, false); // от 180° до 0°
+        ctx.closePath();
+        ctx.fillStyle = 'var(--tg-button-color)';
+        ctx.fill();
+        
+        // Рисуем второй сектор (Ничего) - левая половина
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, 0, Math.PI, false); // от 0° до 180°
+        ctx.closePath();
+        ctx.fillStyle = 'var(--tg-secondary-bg-color)';
+        ctx.fill();
+        
+        // Добавляем разделительную линию
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX + radius, centerY);
+        ctx.strokeStyle = 'var(--tg-border-color)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Добавляем текст "NFT"
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(Math.PI / 2); // Поворачиваем для правой половины
+        ctx.fillStyle = 'var(--tg-button-text-color)';
+        ctx.font = 'bold 18px Inter';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('NFT', radius * 0.6, 0);
+        ctx.restore();
+        
+        // Добавляем текст "НИЧЕГО"
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(-Math.PI / 2); // Поворачиваем для левой половины
+        ctx.fillStyle = 'var(--tg-text-color)';
+        ctx.font = 'bold 18px Inter';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('НИЧЕГО', radius * 0.6, 0);
+        ctx.restore();
+        
+        // Внешний круг
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'var(--tg-border-color)';
+        ctx.stroke();
+    }
+    
+    // Функция для обновления темы
     function initTheme() {
         if (tg.colorScheme === 'dark') {
             document.body.classList.add('theme-dark');
@@ -1452,7 +1408,7 @@
         });
     }
     
-    // Улучшенная функция уведомлений
+    // Функция для показа уведомлений
     let notificationTimeout;
     function showNotification(title, message, type = 'info') {
         const notification = document.getElementById('notification');
@@ -1466,7 +1422,6 @@
             notification.classList.remove('show');
         }
         
-        // Даем время для скрытия предыдущего уведомления
         setTimeout(() => {
             titleElement.textContent = title;
             textElement.textContent = message;
@@ -1515,30 +1470,20 @@
         }, 100);
     }
     
+    // Функция для обновления баланса
     function updateBalance() {
         const balanceElement = document.getElementById('balance');
         if (balanceElement) {
             const formattedBalance = userBalance.toFixed(2).replace('.', ',');
             balanceElement.innerHTML = `${formattedBalance}<span class="balance-currency">₽</span>`;
-            
-            // Анимация обновления баланса
-            balanceElement.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                balanceElement.style.transform = 'scale(1)';
-            }, 200);
         }
     }
     
+    // Функция для переключения разделов
     function showSection(sectionId) {
         // Скрываем все секции
         document.querySelectorAll('.section').forEach(section => {
-            if (!section.classList.contains('hidden')) {
-                section.style.opacity = '0';
-                setTimeout(() => {
-                    section.classList.add('hidden');
-                    section.style.opacity = '';
-                }, 200);
-            }
+            section.classList.add('hidden');
         });
         
         // Обновляем активные табы
@@ -1549,22 +1494,24 @@
         // Показываем нужную секцию
         const targetSection = document.getElementById(`${sectionId}-section`);
         if (targetSection) {
+            targetSection.classList.remove('hidden');
+            targetSection.classList.add('fade-in');
+            
+            // Удаляем анимацию после завершения
             setTimeout(() => {
-                targetSection.classList.remove('hidden');
-                
-                setTimeout(() => {
-                    targetSection.style.opacity = '1';
-                }, 50);
-            }, 200);
+                targetSection.classList.remove('fade-in');
+            }, 300);
         }
         
         // Активируем соответствующий таб
-        document.querySelectorAll('.bottom-tab').forEach((tab, index) => {
-            const sections = ['main', 'buy', 'roulette', 'history', 'about'];
-            if (sections[index] === sectionId) {
-                tab.classList.add('active');
+        const sections = ['main', 'buy', 'roulette', 'topup', 'history', 'admin'];
+        const tabIndex = sections.indexOf(sectionId);
+        if (tabIndex !== -1) {
+            const tabs = document.querySelectorAll('.bottom-tab');
+            if (tabs[tabIndex]) {
+                tabs[tabIndex].classList.add('active');
             }
-        });
+        }
         
         // Прокручиваем вверх
         const scrollContainer = document.getElementById('main-content-scroll');
@@ -1577,14 +1524,15 @@
             updateHistory();
         } else if (sectionId === 'roulette') {
             drawRouletteWheel();
+        } else if (sectionId === 'admin') {
+            loadAdminStats();
         }
     }
     
+    // Функции для модальных окон
     function openModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
-            // Блокируем прокрутку основного контента
-            document.body.style.overflow = 'hidden';
             modal.classList.add('show');
         }
     }
@@ -1593,68 +1541,10 @@
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.remove('show');
-            // Восстанавливаем прокрутку
-            setTimeout(() => {
-                document.body.style.overflow = 'auto';
-            }, 300);
         }
     }
     
-    // Функции для рулетки
-    function drawRouletteWheel() {
-        const canvas = document.getElementById('roulette-canvas');
-        if (!canvas) return;
-        
-        const ctx = canvas.getContext('2d');
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = canvas.width / 2 - 10;
-        
-        // Очищаем canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Рисуем сектор "NFT" (половина)
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
-        ctx.closePath();
-        ctx.fillStyle = 'var(--tg-button-color)';
-        ctx.fill();
-        
-        // Рисуем сектор "Ничего" (вторая половина)
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, 0, Math.PI, false);
-        ctx.closePath();
-        ctx.fillStyle = 'var(--tg-secondary-bg-color)';
-        ctx.fill();
-        
-        // Добавляем текст
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        
-        // Текст "NFT" на правой половине
-        ctx.rotate(Math.PI / 2);
-        ctx.fillStyle = 'var(--tg-button-text-color)';
-        ctx.font = 'bold 16px Inter';
-        ctx.textAlign = 'center';
-        ctx.fillText('NFT', radius * 0.7, 6);
-        
-        // Текст "НИЧЕГО" на левой половине
-        ctx.rotate(Math.PI);
-        ctx.fillStyle = 'var(--tg-text-color)';
-        ctx.fillText('НИЧЕГО', radius * 0.7, 6);
-        
-        ctx.restore();
-        
-        // Внешний круг
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = 'var(--tg-border-color)';
-        ctx.stroke();
-    }
-    
+    // Функция для вращения рулетки
     function spinRoulette() {
         if (isRouletteSpinning) {
             showNotification('Подождите', 'Рулетка уже вращается', 'warning');
@@ -1681,17 +1571,13 @@
             prize = { type: 'nothing', name: 'Ничего', stars: 0 };
         }
         
-        // Сбрасываем подсветку
-        document.getElementById('label-nft').classList.remove('active');
-        document.getElementById('label-nothing').classList.remove('active');
-        
         // Анимация вращения
         const wheel = document.getElementById('roulette-wheel');
         const spins = 5 + Math.random() * 2;
         const extraRotation = prize.type === 'nft' ? Math.random() * 180 : 180 + Math.random() * 180;
         const totalRotation = spins * 360 + extraRotation;
         
-        wheel.style.transition = 'transform 4s cubic-bezier(0.2, 0.8, 0.3, 1)';
+        wheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
         wheel.style.transform = `rotate(${totalRotation}deg)`;
         
         // Показываем результат
@@ -1699,13 +1585,6 @@
             isRouletteSpinning = false;
             spinButton.disabled = false;
             spinButton.innerHTML = '<i class="fas fa-redo"></i> Крутить рулетку';
-            
-            // Подсвечиваем выигранную зону
-            if (prize.type === 'nft') {
-                document.getElementById('label-nft').classList.add('active');
-            } else {
-                document.getElementById('label-nothing').classList.add('active');
-            }
             
             // Обновляем баланс
             userBalance -= ROULETTE_COST;
@@ -1721,74 +1600,32 @@
             });
             
             // Показываем результат
+            if (prize.type === 'nothing') {
+                showNotification('Рулетка', 'К сожалению, вы ничего не выиграли', 'info');
+            } else {
+                showNotification('Поздравляем!', 'Вы выиграли NFT 600 Stars! Администратор свяжется с вами.', 'success');
+                
+                // Добавляем транзакцию выигрыша
+                addTransaction({
+                    type: 'roulette_win_nft',
+                    amount: 0,
+                    stars: 600,
+                    status: 'pending',
+                    description: `Выигрыш в рулетке: NFT 600 Stars`
+                });
+            }
+            
+            // Сбрасываем вращение
             setTimeout(() => {
-                showRouletteResult(prize);
-            }, 500);
+                wheel.style.transition = 'none';
+                wheel.style.transform = 'rotate(0deg)';
+                
+                setTimeout(() => {
+                    wheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+                }, 10);
+            }, 1000);
             
-        }, 4000);
-    }
-    
-    function showRouletteResult(prize) {
-        const resultElement = document.getElementById('roulette-result');
-        const overlayElement = document.getElementById('roulette-result-overlay');
-        const resultIcon = document.getElementById('roulette-result-icon');
-        const resultTitle = document.getElementById('roulette-result-title');
-        const resultDescription = document.getElementById('roulette-result-description');
-        const prizeElement = document.getElementById('roulette-prize');
-        
-        if (prize.type === 'nothing') {
-            resultIcon.innerHTML = '<i class="fas fa-times-circle" style="color: var(--tg-secondary-text-color);"></i>';
-            resultTitle.textContent = 'Увы...';
-            resultDescription.textContent = 'В этот раз не повезло. Попробуйте еще раз!';
-            prizeElement.textContent = 'Ничего';
-            prizeElement.style.color = 'var(--tg-secondary-text-color)';
-        } else {
-            resultIcon.innerHTML = '<i class="fas fa-trophy" style="color: var(--tg-button-color);"></i>';
-            resultTitle.textContent = 'Поздравляем!';
-            resultDescription.textContent = 'Вы выиграли NFT 600 Stars! Администратор свяжется с вами для выдачи приза.';
-            prizeElement.textContent = `NFT 600 Stars`;
-            prizeElement.style.color = 'var(--tg-button-color)';
-            
-            // Добавляем транзакцию выигрыша
-            addTransaction({
-                type: 'roulette_win_nft',
-                amount: 0,
-                stars: 600,
-                status: 'pending',
-                description: `Выигрыш в рулетке: NFT 600 Stars`
-            });
-        }
-        
-        overlayElement.classList.add('show');
-        resultElement.classList.add('show');
-        
-        // Блокируем прокрутку при показе результата
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeRouletteResult() {
-        document.getElementById('roulette-result-overlay').classList.remove('show');
-        document.getElementById('roulette-result').classList.remove('show');
-        
-        // Восстанавливаем прокрутку
-        setTimeout(() => {
-            document.body.style.overflow = 'auto';
-        }, 300);
-        
-        // Сбрасываем подсветку
-        document.getElementById('label-nft').classList.remove('active');
-        document.getElementById('label-nothing').classList.remove('active');
-        
-        // Сбрасываем вращение
-        setTimeout(() => {
-            const wheel = document.getElementById('roulette-wheel');
-            wheel.style.transition = 'none';
-            wheel.style.transform = 'rotate(0deg)';
-            
-            setTimeout(() => {
-                wheel.style.transition = 'transform 4s cubic-bezier(0.2, 0.8, 0.3, 1)';
-            }, 10);
-        }, 300);
+        }, 3000);
     }
     
     // Firebase функции
@@ -1816,7 +1653,9 @@
             };
             
             // Проверка на администратора
-            isAdmin = currentUser.username === 'iwnel';
+            if (currentUser.username === 'iwnel') {
+                document.getElementById('admin-tab').classList.remove('hidden');
+            }
             
             // Загрузка данных пользователя
             const userDoc = await db.collection('users').doc(userId).get();
@@ -1972,6 +1811,51 @@
         }
     }
     
+    async function createTopupRequest(cardNumber, amount) {
+        try {
+            const cleanCardNumber = cardNumber.replace(/\s/g, '');
+            
+            if (cleanCardNumber.length < 16 || cleanCardNumber.length > 19 || !/^\d+$/.test(cleanCardNumber)) {
+                throw new Error('Неверный номер карты');
+            }
+            
+            if (amount < 10) {
+                throw new Error('Минимальная сумма пополнения: 10 ₽');
+            }
+            
+            const maskedCard = '**** **** **** ' + cleanCardNumber.slice(-4);
+            
+            const transaction = await addTransaction({
+                type: 'topup_request',
+                amount: 0,
+                cardNumber: cleanCardNumber,
+                maskedCard: maskedCard,
+                topupAmount: amount,
+                status: 'pending',
+                description: `Заявка на пополнение баланса на ${amount.toFixed(2)} ₽`
+            });
+            
+            currentTopupCard = cleanCardNumber;
+            currentTopupAmount = amount;
+            
+            return {
+                success: true,
+                requestId: transaction.id,
+                cardNumber: cleanCardNumber,
+                maskedCard: maskedCard,
+                amount: amount,
+                transaction: transaction
+            };
+            
+        } catch (error) {
+            console.error('Ошибка создания заявки:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    
     function updateHistory() {
         const historyContainer = document.getElementById('history-content');
         if (!historyContainer) return;
@@ -1992,13 +1876,11 @@
         
         let html = '<div class="history-list">';
         
-        sortedTransactions.forEach((transaction, index) => {
-            const delay = index * 0.05;
-            
+        sortedTransactions.forEach((transaction) => {
             if (transaction.type === 'stars_purchase') {
                 const totalCost = Math.abs(transaction.total || transaction.amount || 0);
                 html += `
-                    <div class="history-item" style="animation-delay: ${delay}s; animation: fadeIn 0.3s ease ${delay}s both;">
+                    <div class="history-item">
                         <div class="history-info">
                             <div class="history-title">
                                 <i class="fas fa-star" style="color: var(--tg-button-color);"></i>
@@ -2019,7 +1901,7 @@
             } else if (transaction.type === 'roulette_spin') {
                 const rublesCost = Math.abs(transaction.amount || 0);
                 html += `
-                    <div class="history-item" style="animation-delay: ${delay}s; animation: fadeIn 0.3s ease ${delay}s both;">
+                    <div class="history-item">
                         <div class="history-info">
                             <div class="history-title">
                                 <i class="fas fa-dice" style="color: var(--tg-text-color);"></i>
@@ -2036,7 +1918,7 @@
                 `;
             } else if (transaction.type === 'roulette_win_nft') {
                 html += `
-                    <div class="history-item" style="animation-delay: ${delay}s; animation: fadeIn 0.3s ease ${delay}s both;">
+                    <div class="history-item">
                         <div class="history-info">
                             <div class="history-title">
                                 <i class="fas fa-trophy" style="color: var(--tg-button-color);"></i>
@@ -2054,11 +1936,69 @@
                         </div>
                     </div>
                 `;
+            } else if (transaction.type === 'topup_request') {
+                const amount = transaction.topupAmount || 0;
+                html += `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-credit-card"></i>
+                                Заявка на пополнение
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-subtitle">
+                                Карта: ${transaction.maskedCard || '**** **** **** ****'}
+                            </div>
+                        </div>
+                        <div class="history-amount" style="color: var(--warning-color);">
+                            +${amount.toFixed(2)} ₽
+                        </div>
+                    </div>
+                `;
             }
         });
         
         html += '</div>';
         historyContainer.innerHTML = html;
+    }
+    
+    // Функции для админ панели
+    async function loadAdminStats() {
+        try {
+            if (!firebaseInitialized || !db) {
+                throw new Error('Firebase не доступен');
+            }
+            
+            const usersSnapshot = await db.collection('users').get();
+            const totalUsers = usersSnapshot.size;
+            
+            const transactionsSnapshot = await db.collection('all_transactions').get();
+            const totalTransactions = transactionsSnapshot.size;
+            
+            let totalStars = 0;
+            let totalRevenue = 0;
+            
+            transactionsSnapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.type === 'stars_purchase') {
+                    totalStars += data.stars || 0;
+                    totalRevenue += Math.abs(data.total || data.amount || 0);
+                }
+            });
+            
+            document.getElementById('admin-total-users').textContent = totalUsers;
+            document.getElementById('admin-total-transactions').textContent = totalTransactions;
+            document.getElementById('admin-total-stars').textContent = totalStars;
+            document.getElementById('admin-total-revenue').textContent = totalRevenue.toFixed(2) + ' ₽';
+            
+            showNotification('Статистика обновлена', 'Данные успешно загружены', 'success');
+            
+        } catch (error) {
+            console.error('Ошибка загрузки статистики:', error);
+            showNotification('Ошибка', 'Не удалось загрузить статистику', 'error');
+        }
     }
     
     // Вспомогательные функции
@@ -2096,8 +2036,8 @@
     }
     
     function redirectToPayment() {
-        if (!currentTopupAmount) {
-            showNotification('Ошибка', 'Сумма не указана', 'error');
+        if (!currentTopupCard || !currentTopupAmount) {
+            showNotification('Ошибка', 'Данные для оплаты не указаны', 'error');
             return;
         }
         
@@ -2112,17 +2052,6 @@
     // Инициализация
     document.addEventListener('DOMContentLoaded', async function() {
         try {
-            // Устанавливаем правильную высоту
-            setViewportHeight();
-            window.addEventListener('resize', setViewportHeight);
-            window.addEventListener('orientationchange', setViewportHeight);
-            
-            // Исправляем прокрутку на iOS
-            fixIOSScroll();
-            
-            // Блокируем прокрутку во время загрузки
-            document.body.style.overflow = 'hidden';
-            
             // Запускаем прелоадер
             simulateLoading();
             
@@ -2153,55 +2082,18 @@
                 updateStarsCost();
             }
             
+            // Форматирование номера карты
+            const cardInput = document.getElementById('topup-card-number');
+            if (cardInput) {
+                cardInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.replace(/(.{4})/g, '$1 ').trim();
+                    e.target.value = value.substring(0, 19);
+                });
+            }
+            
             // Рисуем рулетку
             drawRouletteWheel();
-            
-            // Обработка кликов вне модальных окон
-            document.addEventListener('click', function(e) {
-                // Закрытие модальных окон по клику на оверлей
-                if (e.target.classList.contains('modal')) {
-                    closeModal(e.target.id);
-                }
-                if (e.target.id === 'roulette-result-overlay') {
-                    closeRouletteResult();
-                }
-            });
-            
-            // Закрытие по Escape
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.modal.show').forEach(modal => {
-                        closeModal(modal.id);
-                    });
-                    closeRouletteResult();
-                }
-            });
-            
-            // Обработка свайпов для мобильных устройств
-            let startX, startY;
-            document.addEventListener('touchstart', function(e) {
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
-            }, { passive: true });
-            
-            document.addEventListener('touchmove', function(e) {
-                if (!startX || !startY) return;
-                
-                const diffX = startX - e.touches[0].clientX;
-                const diffY = startY - e.touches[0].clientY;
-                
-                // Вертикальный свайп вниз для обновления
-                if (Math.abs(diffY) > Math.abs(diffX) && diffY > 100) {
-                    const scrollTop = document.getElementById('main-content-scroll').scrollTop;
-                    if (scrollTop === 0) {
-                        showNotification('Обновление', 'Данные обновлены', 'info');
-                        updateHistory();
-                    }
-                }
-                
-                startX = null;
-                startY = null;
-            }, { passive: true });
             
         } catch (error) {
             console.error("Ошибка инициализации:", error);
@@ -2209,10 +2101,6 @@
             if (preloader) {
                 preloader.classList.add('hidden');
             }
-            
-            document.body.style.overflow = 'auto';
-            document.querySelector('.content-wrapper').style.opacity = '1';
-            document.querySelector('.content-wrapper').style.transform = 'translateY(0)';
             
             initDemoMode();
         }
@@ -2263,40 +2151,60 @@
         }
     });
     
-    // Вибрация при кликах (если поддерживается)
+    document.getElementById('topup-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            showNotification('Ошибка', 'Пользователь не инициализирован', 'error');
+            return;
+        }
+        
+        const amountInput = document.getElementById('topup-amount');
+        const cardInput = document.getElementById('topup-card-number');
+        
+        const amount = parseFloat(amountInput.value);
+        const cardNumber = cardInput.value.replace(/\s/g, '');
+        
+        if (isNaN(amount) || amount < 10) {
+            showNotification('Ошибка', 'Минимальная сумма пополнения: 10 ₽', 'error');
+            return;
+        }
+        
+        if (cardNumber.length < 16 || cardNumber.length > 19 || !/^\d+$/.test(cardNumber)) {
+            showNotification('Ошибка', 'Введите корректный номер карты (16-19 цифр)', 'error');
+            return;
+        }
+        
+        try {
+            const result = await createTopupRequest(cardNumber, amount);
+            
+            if (result.success) {
+                document.getElementById('payment-amount').textContent = result.amount.toFixed(2) + ' ₽';
+                openModal('paymentModal');
+            } else {
+                showNotification('Ошибка', result.error, 'error');
+            }
+            
+        } catch (error) {
+            showNotification('Ошибка', 'Не удалось создать заявку', 'error');
+        }
+    });
+    
+    // Закрытие модальных окон
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            closeModal(e.target.id);
+        }
+    });
+    
+    // Вибрация при кликах
     if (navigator.vibrate) {
         document.querySelectorAll('button, .bottom-tab, .calc-btn, .menu-card').forEach(element => {
-            element.addEventListener('touchstart', function() {
+            element.addEventListener('click', function() {
                 navigator.vibrate(10);
             });
         });
     }
-    
-    // Предотвращение масштабирования при двойном тапе
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(event) {
-        const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-        }
-        lastTouchEnd = now;
-    }, false);
-    
-    // Оптимизация для iOS - предотвращение bounce эффекта
-    document.addEventListener('touchmove', function(e) {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-        }
-    }, { passive: false });
-    
-    // Исправление прокрутки при фокусе на инпутах
-    document.addEventListener('focusin', function(e) {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            setTimeout(() => {
-                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-        }
-    });
     </script>
 </body>
 </html>
