@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StarPay — Покупка Telegram Stars</title>
+    <title>StarsPayers — Покупка Telegram Stars</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -32,6 +32,8 @@
             --warning-color: #F59E0B;
             --info-color: #3B82F6;
             --star-color: #FFD700;
+            --roulette-color: #FF6B6B;
+            --roulette-win-color: #4CAF50;
             --radius-lg: 20px;
             --radius-md: 16px;
             --radius-sm: 12px;
@@ -644,6 +646,12 @@
             box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
         }
         
+        .btn-roulette {
+            background: var(--roulette-color);
+            color: white;
+            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+        }
+        
         .calculation {
             background: var(--tg-secondary-bg-color);
             border-radius: var(--radius-md);
@@ -1173,6 +1181,11 @@
             color: var(--success-color);
         }
         
+        .type-roulette {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--roulette-color);
+        }
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -1256,6 +1269,202 @@
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 12px;
+        }
+        
+        /* Главное меню */
+        .main-menu {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        
+        .menu-card {
+            background: var(--tg-card-bg);
+            border: 2px solid var(--tg-border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transform: translateX(-100%);
+        }
+        
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: var(--tg-button-color);
+        }
+        
+        .menu-card:hover::before {
+            animation: shine 1.5s ease-in-out;
+        }
+        
+        .menu-card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 36px;
+            transition: var(--transition);
+        }
+        
+        .menu-card:hover .menu-card-icon {
+            transform: scale(1.1);
+        }
+        
+        .menu-card-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--tg-text-color);
+        }
+        
+        .menu-card-description {
+            font-size: 16px;
+            color: var(--tg-secondary-text-color);
+            line-height: 1.5;
+        }
+        
+        .menu-card-buy .menu-card-icon {
+            background: linear-gradient(135deg, var(--star-color), #FFA500);
+            color: white;
+        }
+        
+        .menu-card-roulette .menu-card-icon {
+            background: linear-gradient(135deg, var(--roulette-color), #FF8E53);
+            color: white;
+        }
+        
+        /* Рулетка */
+        .roulette-container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .roulette-wheel {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+        
+        .roulette-wheel-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                #FF6B6B 0deg 45deg,
+                #4ECDC4 45deg 90deg,
+                #FFD166 90deg 135deg,
+                #06D6A0 135deg 180deg,
+                #118AB2 180deg 225deg,
+                #073B4C 225deg 270deg,
+                #EF476F 270deg 315deg,
+                #FFD166 315deg 360deg
+            );
+            transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .roulette-wheel-spinning {
+            animation: spinRoulette 3s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+        }
+        
+        @keyframes spinRoulette {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(1080deg); }
+        }
+        
+        .roulette-marker {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            z-index: 10;
+        }
+        
+        .roulette-marker::before {
+            content: '▼';
+            font-size: 40px;
+            color: var(--roulette-color);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .roulette-result {
+            background: var(--tg-secondary-bg-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 28px;
+            border: 2px solid var(--tg-border-color);
+            display: none;
+        }
+        
+        .roulette-result.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .roulette-result-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+        
+        .roulette-result-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        
+        .roulette-result-description {
+            font-size: 18px;
+            color: var(--tg-secondary-text-color);
+            margin-bottom: 24px;
+        }
+        
+        .roulette-prize {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--star-color);
+            margin: 20px 0;
+        }
+        
+        .roulette-cost {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--roulette-color);
+            color: white;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            margin-bottom: 24px;
         }
         
         .hidden {
@@ -1406,6 +1615,25 @@
                 padding: 14px 20px;
                 font-size: 20px;
             }
+            
+            .roulette-wheel {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .menu-card {
+                padding: 24px;
+            }
+            
+            .menu-card-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+            
+            .menu-card-title {
+                font-size: 20px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -1453,6 +1681,11 @@
                 text-align: left;
                 width: 100%;
             }
+            
+            .roulette-wheel {
+                width: 200px;
+                height: 200px;
+            }
         }
     </style>
 </head>
@@ -1461,7 +1694,7 @@
     <div id="preloader">
         <div class="preloader-logo">
             <div class="preloader-logo-icon">★</div>
-            <div class="preloader-logo-text">StarPay</div>
+            <div class="preloader-logo-text">StarsPayers</div>
         </div>
         <div class="preloader-spinner">
             <div class="preloader-spinner-circle"></div>
@@ -1484,11 +1717,11 @@
                 </div>
                 <div class="modal-body">
                     <div class="document-content">
-                        <h3>Пользовательское соглашение StarPay</h3>
+                        <h3>Пользовательское соглашение StarsPayers</h3>
                         <p><strong>Дата вступления в силу:</strong> 1 января 2026 года</p>
                         
                         <h4>1. Общие положения</h4>
-                        <p>StarPay - сервис для покупки и обмена Telegram Stars.</p>
+                        <p>StarsPayers - сервис для покупки и обмена Telegram Stars.</p>
                         
                         <h4>2. Курс обмена</h4>
                         <p>1 Telegram Star = 1.1 RUB. Курс фиксированный и может изменяться с уведомлением пользователей.</p>
@@ -1501,7 +1734,7 @@
                         <p>Срок обработки заявок: 1-7 рабочих дней.</p>
                         
                         <h4>5. Контакты</h4>
-                        <p>Поддержка: starpay@mail.ru</p>
+                        <p>Поддержка: starspayers@mail.ru</p>
                     </div>
                 </div>
             </div>
@@ -1583,7 +1816,7 @@
             <div class="header">
                 <div class="logo">
                     <div class="logo-icon">★</div>
-                    <span>StarPay</span>
+                    <span>StarsPayers</span>
                 </div>
                 <div class="user-info">
                     <div class="balance" id="balance">0 ₽</div>
@@ -1597,16 +1830,48 @@
                 </div>
                 
                 <div class="tabs" id="main-tabs">
-                    <button class="tab active" onclick="showSection('buy')">Купить Stars</button>
+                    <button class="tab active" onclick="showSection('main')">Главное меню</button>
                     <button class="tab" onclick="showSection('topup')">Пополнить баланс</button>
                     <button class="tab" onclick="showSection('history')">История</button>
                     <button class="tab" onclick="showSection('about')">О сервисе</button>
                 </div>
                 
-                <div id="buy-section" class="section active">
+                <div id="main-section" class="section active">
+                    <div class="section-title">
+                        <i class="fas fa-home"></i>
+                        <span>Главное меню</span>
+                    </div>
+                    
+                    <div class="main-menu">
+                        <div class="menu-card menu-card-buy" onclick="showSection('buy')">
+                            <div class="menu-card-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="menu-card-title">Купить Telegram Stars</div>
+                            <div class="menu-card-description">
+                                Приобретайте Telegram Stars по выгодному курсу для использования в Telegram
+                            </div>
+                        </div>
+                        
+                        <div class="menu-card menu-card-roulette" onclick="showSection('roulette')">
+                            <div class="menu-card-icon">
+                                <i class="fas fa-dice"></i>
+                            </div>
+                            <div class="menu-card-title">Рулетка</div>
+                            <div class="menu-card-description">
+                                Крутите колесо за 30 Stars и выигрывайте ценные NFT-призы
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="buy-section" class="section hidden">
                     <div class="section-title">
                         <i class="fas fa-star"></i>
                         <span>Покупка Telegram Stars</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
                     </div>
                     
                     <div class="calculator">
@@ -1664,10 +1929,59 @@
                     </div>
                 </div>
                 
+                <div id="roulette-section" class="section hidden">
+                    <div class="section-title">
+                        <i class="fas fa-dice"></i>
+                        <span>Рулетка</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                    
+                    <div class="roulette-container">
+                        <div class="roulette-wheel">
+                            <div class="roulette-wheel-inner" id="roulette-wheel">
+                                <!-- Рулетка будет отрисована через JS -->
+                            </div>
+                            <div class="roulette-marker"></div>
+                        </div>
+                        
+                        <div class="roulette-cost">
+                            <i class="fas fa-star"></i> 30 Stars за спин
+                        </div>
+                        
+                        <div style="margin-bottom: 28px; color: var(--tg-secondary-text-color); font-size: 16px;">
+                            <p>Выиграйте NFT стоимостью от 600 Stars!</p>
+                            <p>Шанс выигрыша: 25%</p>
+                        </div>
+                        
+                        <button class="btn btn-roulette" id="spin-button" onclick="spinRoulette()">
+                            <i class="fas fa-redo"></i>
+                            Крутить рулетку
+                        </button>
+                    </div>
+                    
+                    <div id="roulette-result" class="roulette-result">
+                        <div class="roulette-result-icon" id="roulette-result-icon">🎁</div>
+                        <div class="roulette-result-title" id="roulette-result-title">Поздравляем!</div>
+                        <div class="roulette-result-description" id="roulette-result-description">
+                            Вы выиграли ценный приз!
+                        </div>
+                        <div class="roulette-prize" id="roulette-prize">600 Stars NFT</div>
+                        <button class="btn btn-success" onclick="closeRouletteResult()">
+                            <i class="fas fa-check"></i>
+                            Отлично!
+                        </button>
+                    </div>
+                </div>
+                
                 <div id="topup-section" class="section hidden">
                     <div class="section-title">
                         <i class="fas fa-wallet"></i>
                         <span>Пополнение баланса</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
                     </div>
                     
                     <form id="topup-form">
@@ -1717,6 +2031,9 @@
                     <div class="section-title">
                         <i class="fas fa-history"></i>
                         <span>История операций</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
                     </div>
                     
                     <div id="history-content">
@@ -1781,6 +2098,9 @@
                             <button class="btn btn-secondary" onclick="loadAdminTransactions('topup')" style="flex: 1; min-width: 140px;">
                                 Пополнения
                             </button>
+                            <button class="btn btn-secondary" onclick="loadAdminTransactions('roulette')" style="flex: 1; min-width: 140px;">
+                                Рулетка
+                            </button>
                         </div>
                         
                         <div id="admin-transactions-content">
@@ -1810,7 +2130,10 @@
                 <div id="about-section" class="section hidden">
                     <div class="section-title">
                         <i class="fas fa-info-circle"></i>
-                        <span>О сервисе StarPay</span>
+                        <span>О сервисе StarsPayers</span>
+                        <button class="btn btn-secondary" onclick="showSection('main')" style="margin-left: auto; padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
                     </div>
                     
                     <div style="margin-bottom: 28px;">
@@ -1878,10 +2201,20 @@
     let userBalance = 0;
     let userTransactions = [];
     const STAR_RATE = 1.1;
+    const ROULETTE_COST = 30 * STAR_RATE; // 30 Stars в рублях
     let currentTopupCard = '';
     let currentTopupAmount = 0;
     let isAdmin = false;
     let editingUserId = null;
+    let isRouletteSpinning = false;
+    
+    // Призы для рулетки
+    const ROULETTE_PRIZES = [
+        { type: 'nothing', name: 'Ничего', stars: 0, probability: 75 },
+        { type: 'nft', name: 'NFT 600 Stars', stars: 600, probability: 15 },
+        { type: 'nft', name: 'NFT 750 Stars', stars: 750, probability: 7 },
+        { type: 'nft', name: 'NFT 900 Stars', stars: 900, probability: 3 }
+    ];
     
     // Функция для создания частиц
     function createParticles() {
@@ -2183,6 +2516,114 @@
             }
         };
         window.requestAnimationFrame(step);
+    }
+    
+    // Рулетка
+    function spinRoulette() {
+        if (isRouletteSpinning) return;
+        
+        // Проверяем баланс
+        if (userBalance < ROULETTE_COST) {
+            showNotification('Ошибка', `Недостаточно средств. Нужно ${ROULETTE_COST.toFixed(2)} ₽ (30 Stars)`, 'error');
+            return;
+        }
+        
+        isRouletteSpinning = true;
+        const spinButton = document.getElementById('spin-button');
+        spinButton.disabled = true;
+        spinButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Крутим...';
+        
+        // Списываем средства
+        userBalance -= ROULETTE_COST;
+        updateBalance();
+        
+        // Определяем выигрыш
+        const random = Math.random() * 100;
+        let cumulativeProbability = 0;
+        let prize = ROULETTE_PRIZES[0]; // По умолчанию ничего
+        
+        for (const p of ROULETTE_PRIZES) {
+            cumulativeProbability += p.probability;
+            if (random <= cumulativeProbability) {
+                prize = p;
+                break;
+            }
+        }
+        
+        // Анимация рулетки
+        const rouletteWheel = document.getElementById('roulette-wheel');
+        const spins = 5 + Math.random() * 2; // 5-7 полных оборотов
+        const extraRotation = Math.random() * 360; // Случайная конечная позиция
+        
+        rouletteWheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+        rouletteWheel.style.transform = `rotate(${spins * 360 + extraRotation}deg)`;
+        
+        // Показываем результат через 3 секунды
+        setTimeout(() => {
+            isRouletteSpinning = false;
+            spinButton.disabled = false;
+            spinButton.innerHTML = '<i class="fas fa-redo"></i> Крутить рулетку';
+            
+            showRouletteResult(prize);
+        }, 3000);
+    }
+    
+    function showRouletteResult(prize) {
+        const resultElement = document.getElementById('roulette-result');
+        const resultIcon = document.getElementById('roulette-result-icon');
+        const resultTitle = document.getElementById('roulette-result-title');
+        const resultDescription = document.getElementById('roulette-result-description');
+        const prizeElement = document.getElementById('roulette-prize');
+        
+        if (prize.type === 'nothing') {
+            resultIcon.textContent = '😢';
+            resultIcon.style.color = 'var(--tg-secondary-text-color)';
+            resultTitle.textContent = 'Увы...';
+            resultDescription.textContent = 'В этот раз не повезло. Попробуйте еще раз!';
+            prizeElement.textContent = 'Ничего';
+            prizeElement.style.color = 'var(--tg-secondary-text-color)';
+            
+            showNotification('Рулетка', 'К сожалению, вы ничего не выиграли', 'info');
+        } else {
+            // Добавляем выигрыш на баланс
+            const prizeValue = prize.stars * STAR_RATE;
+            userBalance += prizeValue;
+            updateBalance();
+            
+            resultIcon.textContent = '🎁';
+            resultIcon.style.color = 'var(--roulette-win-color)';
+            resultTitle.textContent = 'Поздравляем!';
+            resultDescription.textContent = 'Вы выиграли ценный приз!';
+            prizeElement.textContent = `${prize.name} (${prize.stars} Stars)`;
+            prizeElement.style.color = 'var(--star-color)';
+            
+            // Добавляем транзакцию
+            addTransaction({
+                type: 'roulette_win',
+                amount: prizeValue,
+                stars: prize.stars,
+                status: 'completed',
+                description: `Выигрыш в рулетке: ${prize.name}`
+            });
+            
+            showNotification('Поздравляем!', `Вы выиграли ${prize.name}!`, 'success');
+        }
+        
+        resultElement.classList.add('show');
+    }
+    
+    function closeRouletteResult() {
+        document.getElementById('roulette-result').classList.remove('show');
+        
+        // Сбрасываем рулетку
+        const rouletteWheel = document.getElementById('roulette-wheel');
+        rouletteWheel.style.transition = 'none';
+        rouletteWheel.style.transform = 'rotate(0deg)';
+        
+        // Небольшая задержка для сброса transition
+        setTimeout(() => {
+            rouletteWheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+        }, 10);
     }
     
     // Работа с Firebase
@@ -2493,6 +2934,31 @@
                         </div>
                     </div>
                 `;
+            } else if (transaction.type === 'roulette_win') {
+                const starsWon = transaction.stars || 0;
+                const rublesWon = transaction.amount || 0;
+                html += `
+                    <div class="history-item" style="animation-delay: ${delay}s;">
+                        <div class="history-info">
+                            <div class="history-title">
+                                <i class="fas fa-dice" style="color: var(--roulette-color);"></i>
+                                Выигрыш в рулетке
+                            </div>
+                            <div class="history-subtitle">
+                                ${transaction.date || ''} ${transaction.time || ''}
+                            </div>
+                            <div class="history-subtitle">
+                                ${starsWon > 0 ? starsWon + ' Stars NFT' : 'Ничего'}
+                            </div>
+                            <div class="history-status status-success">
+                                Завершено
+                            </div>
+                        </div>
+                        <div class="history-amount ${starsWon > 0 ? 'positive' : 'negative'}">
+                            ${starsWon > 0 ? '+' : ''}${rublesWon.toFixed(2)} ₽
+                        </div>
+                    </div>
+                `;
             }
         });
         
@@ -2574,6 +3040,8 @@
                 query = query.where('type', '==', 'stars_purchase');
             } else if (filter === 'topup') {
                 query = query.where('type', 'in', ['topup_request', 'topup_completed']);
+            } else if (filter === 'roulette') {
+                query = query.where('type', '==', 'roulette_win');
             }
             
             const snapshot = await query.get();
@@ -2600,6 +3068,7 @@
                 // Пропускаем если данные не соответствуют фильтру
                 if (filter === 'stars' && data.type !== 'stars_purchase') return;
                 if (filter === 'topup' && !['topup_request', 'topup_completed'].includes(data.type)) return;
+                if (filter === 'roulette' && data.type !== 'roulette_win') return;
                 
                 hasData = true;
                 
@@ -2636,6 +3105,11 @@
                     details = data.reason || 'Изменение баланса';
                     amount = `${data.amount >= 0 ? '+' : ''}${data.amount?.toFixed(2) || '0.00'} ₽`;
                     amountColor = data.amount >= 0 ? 'var(--success-color)' : 'var(--error-color)';
+                } else if (data.type === 'roulette_win') {
+                    typeBadge = '<span class="transaction-type type-roulette">Рулетка</span>';
+                    details = `${data.stars || 0} Stars NFT`;
+                    amount = `+${Math.abs(data.amount || 0).toFixed(2)} ₽`;
+                    amountColor = 'var(--success-color)';
                 }
                 
                 let statusBadge = '';
@@ -3034,7 +3508,7 @@
     
     // Вибрация при кликах
     if (navigator.vibrate) {
-        document.querySelectorAll('button, .tab, .calc-btn').forEach(element => {
+        document.querySelectorAll('button, .tab, .calc-btn, .menu-card').forEach(element => {
             element.addEventListener('click', function() {
                 navigator.vibrate(10);
             });
