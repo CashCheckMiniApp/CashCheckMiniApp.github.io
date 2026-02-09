@@ -525,7 +525,7 @@
             border-bottom: none;
         }
         
-        /* Рулетка - ИСПРАВЛЕННАЯ версия */
+        /* Рулетка - ИСПРАВЛЕННАЯ версия с правильными секторами */
         .roulette-container {
             text-align: center;
             padding: 16px 0;
@@ -698,13 +698,38 @@
             line-height: 1.4;
         }
         
-        /* Админ панель */
-        .admin-panel {
-            background: var(--tg-card-bg);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            margin-bottom: 16px;
+        /* Админ панель - расширенная */
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--tg-secondary-bg-color);
+            padding: 6px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            overflow-x: auto;
             border: 1px solid var(--tg-border-color);
+        }
+        
+        .admin-tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--tg-secondary-text-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-align: center;
+            white-space: nowrap;
+            transition: var(--transition);
+        }
+        
+        .admin-tab.active {
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
             box-shadow: var(--tg-shadow);
         }
         
@@ -733,6 +758,64 @@
             font-size: 12px;
             color: var(--tg-secondary-text-color);
             text-transform: uppercase;
+        }
+        
+        .admin-table-container {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--tg-border-color);
+            margin-bottom: 20px;
+        }
+        
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        
+        .admin-table th {
+            text-align: left;
+            padding: 12px;
+            background: var(--tg-secondary-bg-color);
+            border-bottom: 1px solid var(--tg-border-color);
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        
+        .admin-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--tg-border-color);
+            font-size: 13px;
+        }
+        
+        .admin-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .transaction-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: var(--radius-xs);
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .type-stars {
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
+        }
+        
+        .type-topup {
+            background: var(--tg-secondary-bg-color);
+            color: var(--tg-text-color);
+            border: 1px solid var(--tg-border-color);
+        }
+        
+        .type-roulette {
+            background: var(--tg-secondary-bg-color);
+            color: var(--tg-text-color);
+            border: 1px solid var(--tg-border-color);
         }
         
         /* Уведомления */
@@ -1181,7 +1264,13 @@
                             <span>Админ панель</span>
                         </div>
                         
-                        <div class="admin-panel">
+                        <div class="admin-tabs">
+                            <button class="admin-tab active" onclick="showAdminTab('stats')">Статистика</button>
+                            <button class="admin-tab" onclick="showAdminTab('transactions')">Транзакции</button>
+                            <button class="admin-tab" onclick="showAdminTab('users')">Пользователи</button>
+                        </div>
+                        
+                        <div id="admin-stats-tab">
                             <div class="admin-stats">
                                 <div class="admin-stat">
                                     <div class="admin-stat-value" id="admin-total-users">0</div>
@@ -1205,6 +1294,43 @@
                                 <i class="fas fa-sync-alt"></i>
                                 Обновить статистику
                             </button>
+                        </div>
+                        
+                        <div id="admin-transactions-tab" class="hidden">
+                            <div style="margin-bottom: 16px;">
+                                <button class="btn btn-secondary" onclick="loadAdminTransactions('all')" style="width: auto; padding: 12px 16px; margin-right: 8px;">
+                                    Все
+                                </button>
+                                <button class="btn btn-secondary" onclick="loadAdminTransactions('stars')" style="width: auto; padding: 12px 16px; margin-right: 8px;">
+                                    Покупки Stars
+                                </button>
+                                <button class="btn btn-secondary" onclick="loadAdminTransactions('topup')" style="width: auto; padding: 12px 16px;">
+                                    Пополнения
+                                </button>
+                            </div>
+                            
+                            <div id="admin-transactions-content">
+                                <div class="empty-state">
+                                    <i class="fas fa-database"></i>
+                                    <p>Загрузите транзакции</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="admin-users-tab" class="hidden">
+                            <div style="margin-bottom: 16px;">
+                                <button class="btn" onclick="loadAdminUsers()">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Обновить список пользователей
+                                </button>
+                            </div>
+                            
+                            <div id="admin-users-content">
+                                <div class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <p>Загрузите список пользователей</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1325,7 +1451,7 @@
         }, 100);
     }
     
-    // Функция для рисования рулетки с секторами
+    // Функция для рисования рулетки с четкими секторами
     function drawRouletteWheel() {
         const canvas = document.getElementById('roulette-canvas');
         if (!canvas) return;
@@ -1338,20 +1464,20 @@
         // Очищаем canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Рисуем первый сектор (NFT) - правая половина
+        // Рисуем сектор "Ничего" (левая половина) - СЕРЫЙ
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, Math.PI, 0, false); // от 180° до 0°
-        ctx.closePath();
-        ctx.fillStyle = 'var(--tg-button-color)';
-        ctx.fill();
-        
-        // Рисуем второй сектор (Ничего) - левая половина
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, 0, Math.PI, false); // от 0° до 180°
+        ctx.arc(centerX, centerY, radius, 0, Math.PI, false); // от 0° до 180° (левая половина)
         ctx.closePath();
         ctx.fillStyle = 'var(--tg-secondary-bg-color)';
+        ctx.fill();
+        
+        // Рисуем сектор "NFT" (правая половина) - ЧЕРНЫЙ/БЕЛЫЙ
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, Math.PI, 0, false); // от 180° до 360° (правая половина)
+        ctx.closePath();
+        ctx.fillStyle = 'var(--tg-button-color)';
         ctx.fill();
         
         // Добавляем разделительную линию
@@ -1362,23 +1488,31 @@
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Добавляем текст "NFT"
+        // Добавляем разделительную линию между секторами
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX - radius, centerY);
+        ctx.strokeStyle = 'var(--tg-border-color)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Добавляем текст "NFT" (правая половина)
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate(Math.PI / 2); // Поворачиваем для правой половины
+        ctx.rotate(Math.PI / 2); // Поворачиваем на 90 градусов для правой половины
         ctx.fillStyle = 'var(--tg-button-text-color)';
-        ctx.font = 'bold 18px Inter';
+        ctx.font = 'bold 16px Inter';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('NFT', radius * 0.6, 0);
         ctx.restore();
         
-        // Добавляем текст "НИЧЕГО"
+        // Добавляем текст "НИЧЕГО" (левая половина)
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate(-Math.PI / 2); // Поворачиваем для левой половины
+        ctx.rotate(-Math.PI / 2); // Поворачиваем на -90 градусов для левой половины
         ctx.fillStyle = 'var(--tg-text-color)';
-        ctx.font = 'bold 18px Inter';
+        ctx.font = 'bold 16px Inter';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('НИЧЕГО', radius * 0.6, 0);
@@ -1527,6 +1661,48 @@
         } else if (sectionId === 'admin') {
             loadAdminStats();
         }
+    }
+    
+    // Функция для переключения вкладок в админ панели
+    function showAdminTab(tabName) {
+        // Скрываем все вкладки
+        document.querySelectorAll('#admin-section > div[id$="-tab"]').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        
+        // Убираем активный класс у всех кнопок
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Показываем нужную вкладку
+        const targetTab = document.getElementById(`admin-${tabName}-tab`);
+        if (targetTab) {
+            targetTab.classList.remove('hidden');
+        }
+        
+        // Активируем соответствующую кнопку
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            if (tab.textContent.includes(getTabName(tabName))) {
+                tab.classList.add('active');
+            }
+        });
+        
+        // Загружаем данные для вкладки
+        if (tabName === 'transactions') {
+            loadAdminTransactions('all');
+        } else if (tabName === 'users') {
+            loadAdminUsers();
+        }
+    }
+    
+    function getTabName(tabKey) {
+        const names = {
+            'stats': 'Статистика',
+            'transactions': 'Транзакции',
+            'users': 'Пользователи'
+        };
+        return names[tabKey] || tabKey;
     }
     
     // Функции для модальных окон
@@ -1993,11 +2169,158 @@
             document.getElementById('admin-total-stars').textContent = totalStars;
             document.getElementById('admin-total-revenue').textContent = totalRevenue.toFixed(2) + ' ₽';
             
-            showNotification('Статистика обновлена', 'Данные успешно загружены', 'success');
-            
         } catch (error) {
             console.error('Ошибка загрузки статистики:', error);
             showNotification('Ошибка', 'Не удалось загрузить статистику', 'error');
+        }
+    }
+    
+    async function loadAdminTransactions(filter = 'all') {
+        try {
+            if (!firebaseInitialized || !db) {
+                throw new Error('Firebase не доступен');
+            }
+            
+            let query = db.collection('all_transactions').orderBy('timestamp', 'desc').limit(50);
+            
+            if (filter === 'stars') {
+                query = query.where('type', '==', 'stars_purchase');
+            } else if (filter === 'topup') {
+                query = query.where('type', 'in', ['topup_request', 'topup_completed']);
+            }
+            
+            const snapshot = await query.get();
+            
+            const contentDiv = document.getElementById('admin-transactions-content');
+            
+            if (snapshot.empty) {
+                contentDiv.innerHTML = '<div class="empty-state"><i class="fas fa-database"></i><p>Транзакций не найдено</p></div>';
+                return;
+            }
+            
+            let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
+            html += '<th>Дата</th>';
+            html += '<th>Пользователь</th>';
+            html += '<th>Тип</th>';
+            html += '<th>Сумма</th>';
+            html += '<th>Статус</th>';
+            html += '</tr></thead><tbody>';
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                
+                let dateStr = 'N/A';
+                if (data.timestamp) {
+                    const date = new Date(data.timestamp);
+                    dateStr = date.toLocaleDateString('ru-RU');
+                }
+                
+                const userName = data.userName || 'Неизвестно';
+                const username = data.username ? `@${data.username}` : '';
+                
+                let typeBadge = '';
+                let amount = '0.00 ₽';
+                let amountColor = 'var(--tg-text-color)';
+                
+                if (data.type === 'stars_purchase') {
+                    typeBadge = '<span class="transaction-type type-stars">Stars</span>';
+                    amount = `-${Math.abs(data.total || data.amount || 0).toFixed(2)} ₽`;
+                    amountColor = 'var(--error-color)';
+                } else if (data.type === 'topup_request' || data.type === 'topup_completed') {
+                    typeBadge = '<span class="transaction-type type-topup">Пополнение</span>';
+                    amount = `+${(data.topupAmount || 0).toFixed(2)} ₽`;
+                    amountColor = 'var(--success-color)';
+                } else if (data.type === 'roulette_win_nft') {
+                    typeBadge = '<span class="transaction-type type-roulette">Рулетка</span>';
+                    amount = 'NFT';
+                    amountColor = 'var(--tg-button-color)';
+                } else if (data.type === 'roulette_spin') {
+                    typeBadge = '<span class="transaction-type type-roulette">Рулетка</span>';
+                    amount = `-${Math.abs(data.amount || 0).toFixed(2)} ₽`;
+                    amountColor = 'var(--error-color)';
+                }
+                
+                let statusBadge = '';
+                if (data.status === 'completed') {
+                    statusBadge = '<span style="color: var(--success-color); font-size: 11px; font-weight: 600;">✓ Завершено</span>';
+                } else if (data.status === 'pending') {
+                    statusBadge = '<span style="color: var(--warning-color); font-size: 11px; font-weight: 600;">⏳ Ожидание</span>';
+                }
+                
+                html += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td>
+                            <div>${userName}</div>
+                            <div style="font-size: 11px; color: var(--tg-secondary-text-color);">${username}</div>
+                        </td>
+                        <td>${typeBadge}</td>
+                        <td style="font-weight: 700; color: ${amountColor};">${amount}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            contentDiv.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки транзакций:', error);
+            document.getElementById('admin-transactions-content').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Ошибка загрузки</p></div>';
+        }
+    }
+    
+    async function loadAdminUsers() {
+        try {
+            if (!firebaseInitialized || !db) {
+                throw new Error('Firebase не доступен');
+            }
+            
+            const usersSnapshot = await db.collection('users').get();
+            
+            const contentDiv = document.getElementById('admin-users-content');
+            
+            if (usersSnapshot.empty) {
+                contentDiv.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Пользователей не найдено</p></div>';
+                return;
+            }
+            
+            let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
+            html += '<th>ID</th>';
+            html += '<th>Имя</th>';
+            html += '<th>Username</th>';
+            html += '<th>Баланс</th>';
+            html += '<th>Регистрация</th>';
+            html += '</tr></thead><tbody>';
+            
+            usersSnapshot.forEach((doc) => {
+                const user = doc.data();
+                const userId = doc.id;
+                const balance = user.balance || 0;
+                
+                let registrationDate = 'N/A';
+                if (user.registrationDate) {
+                    const date = new Date(user.registrationDate);
+                    registrationDate = date.toLocaleDateString('ru-RU');
+                }
+                
+                html += `
+                    <tr>
+                        <td style="font-family: monospace; font-size: 11px;">${userId.substring(0, 8)}...</td>
+                        <td>${user.name || 'Неизвестно'}</td>
+                        <td>${user.username ? '@' + user.username : '-'}</td>
+                        <td style="font-weight: 700;">${balance.toFixed(2)} ₽</td>
+                        <td>${registrationDate}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            contentDiv.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Ошибка загрузки пользователей:', error);
+            document.getElementById('admin-users-content').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Ошибка загрузки</p></div>';
         }
     }
     
