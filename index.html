@@ -32,7 +32,7 @@
             --warning-color: #F59E0B;
             --info-color: #3B82F6;
             --star-color: #FFD700;
-            --roulette-color: #666666;
+            --roulette-color: #FFFFFF;
             --roulette-win-color: #4CAF50;
             --radius-lg: 20px;
             --radius-md: 16px;
@@ -55,7 +55,7 @@
             --tg-card-bg: #1A1A1A;
             --tg-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
             --tg-input-bg: #2A2A2A;
-            --roulette-color: #CCCCCC;
+            --roulette-color: #FFFFFF;
         }
         
         * {
@@ -647,28 +647,28 @@
         }
         
         .btn-secondary {
-            background: var(--tg-secondary-bg-color);
-            color: var(--tg-text-color);
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
             border: 2px solid var(--tg-border-color);
         }
         
         .btn-success {
-            background: var(--success-color);
-            color: white;
-            border-color: var(--success-color);
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
+            border-color: var(--tg-border-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
         
         .btn-roulette {
-            background: var(--roulette-color);
-            color: white;
-            border-color: var(--roulette-color);
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
+            border-color: var(--tg-border-color);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
         
         .theme-dark .btn-roulette {
-            background: var(--roulette-color);
-            color: white;
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
         }
         
         .calculation {
@@ -1203,8 +1203,8 @@
         }
         
         .type-roulette {
-            background: rgba(102, 102, 102, 0.15);
-            color: var(--roulette-color);
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--tg-text-color);
         }
         
         .stats-grid {
@@ -1421,7 +1421,7 @@
         .roulette-marker::before {
             content: '▼';
             font-size: 40px;
-            color: var(--roulette-color);
+            color: var(--tg-text-color);
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         
@@ -1472,11 +1472,12 @@
         .roulette-cost {
             display: inline-block;
             padding: 12px 24px;
-            background: var(--roulette-color);
-            color: white;
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
             border-radius: var(--radius-md);
             font-weight: 700;
             margin-bottom: 24px;
+            border: 2px solid var(--tg-border-color);
         }
         
         .hidden {
@@ -1981,7 +1982,7 @@
                     </div>
                     
                     <div id="roulette-result" class="roulette-result">
-                        <div class="roulette-result-icon" id="roulette-result-icon"><i class="fas fa-gift"></i></div>
+                        <div class="roulette-result-icon" id="roulette-result-icon"></div>
                         <div class="roulette-result-title" id="roulette-result-title">Поздравляем!</div>
                         <div class="roulette-result-description" id="roulette-result-description">
                             Вы выиграли ценный приз!
@@ -2316,19 +2317,19 @@
         
         switch(type) {
             case 'success':
-                iconElement.innerHTML = '<i class="fas fa-check-circle"></i>';
+                iconElement.innerHTML = '★';
                 notification.style.borderLeft = '4px solid var(--success-color)';
                 iconElement.style.background = 'rgba(16, 185, 129, 0.1)';
                 iconElement.style.color = 'var(--success-color)';
                 break;
             case 'error':
-                iconElement.innerHTML = '<i class="fas fa-times-circle"></i>';
+                iconElement.innerHTML = '★';
                 notification.style.borderLeft = '4px solid var(--error-color)';
                 iconElement.style.background = 'rgba(239, 68, 68, 0.1)';
                 iconElement.style.color = 'var(--error-color)';
                 break;
             case 'warning':
-                iconElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                iconElement.innerHTML = '★';
                 notification.style.borderLeft = '4px solid var(--warning-color)';
                 iconElement.style.background = 'rgba(245, 158, 11, 0.1)';
                 iconElement.style.color = 'var(--warning-color)';
@@ -2595,8 +2596,7 @@
         });
         
         if (prize.type === 'nothing') {
-            resultIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
-            resultIcon.style.color = 'var(--tg-secondary-text-color)';
+            resultIcon.innerHTML = '';
             resultTitle.textContent = 'Увы...';
             resultDescription.textContent = 'В этот раз не повезло. Попробуйте еще раз!';
             prizeElement.textContent = 'Ничего';
@@ -2609,8 +2609,7 @@
             userBalance += prizeValue;
             updateBalance();
             
-            resultIcon.innerHTML = '<i class="fas fa-gift"></i>';
-            resultIcon.style.color = 'var(--success-color)';
+            resultIcon.innerHTML = '';
             resultTitle.textContent = 'Поздравляем!';
             resultDescription.textContent = 'Вы выиграли ценный приз!';
             prizeElement.textContent = `${prize.name}`;
@@ -2963,7 +2962,7 @@
                     <div class="history-item" style="animation-delay: ${delay}s;">
                         <div class="history-info">
                             <div class="history-title">
-                                <i class="fas fa-dice" style="color: var(--roulette-color);"></i>
+                                <i class="fas fa-dice" style="color: var(--tg-text-color);"></i>
                                 Выигрыш в рулетке
                             </div>
                             <div class="history-subtitle">
@@ -2988,7 +2987,7 @@
                     <div class="history-item" style="animation-delay: ${delay}s;">
                         <div class="history-info">
                             <div class="history-title">
-                                <i class="fas fa-dice" style="color: var(--roulette-color);"></i>
+                                <i class="fas fa-dice" style="color: var(--tg-text-color);"></i>
                                 Спин рулетки
                             </div>
                             <div class="history-subtitle">
