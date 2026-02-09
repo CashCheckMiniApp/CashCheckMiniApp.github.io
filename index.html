@@ -21,25 +21,17 @@
             --tg-button-text-color: #FFFFFF;
             --tg-border-color: #E0E0E0;
             --tg-card-bg: #FFFFFF;
-            --tg-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --tg-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             --tg-input-bg: #FFFFFF;
             --primary-black: #000000;
-            --secondary-black: #111111;
-            --primary-white: #FFFFFF;
-            --secondary-gray: #F5F5F5;
             --success-color: #000000;
             --error-color: #FF3B30;
             --warning-color: #FF9500;
-            --info-color: #000000;
-            --star-color: #000000;
-            --roulette-color: #000000;
-            --roulette-win-color: #000000;
+            --roulette-win: #000000;
             --radius-lg: 16px;
             --radius-md: 12px;
             --radius-sm: 8px;
-            --radius-xs: 6px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: all 0.25s ease;
         }
         
         .theme-dark {
@@ -53,9 +45,8 @@
             --tg-button-text-color: #000000;
             --tg-border-color: #333333;
             --tg-card-bg: #111111;
-            --tg-shadow: 0 4px 16px rgba(255, 255, 255, 0.08);
+            --tg-shadow: 0 4px 20px rgba(255, 255, 255, 0.08);
             --tg-input-bg: #222222;
-            --roulette-color: #FFFFFF;
         }
         
         * {
@@ -66,123 +57,31 @@
         }
         
         html {
-            scroll-behavior: smooth;
             height: 100%;
+            scroll-behavior: smooth;
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--tg-bg-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--tg-bg-color);
             color: var(--tg-text-color);
             line-height: 1.5;
             min-height: 100vh;
-            transition: var(--transition);
             overflow-x: hidden;
-            background: var(--tg-bg-color);
-            padding-bottom: 70px; /* Для нижнего меню */
+            padding-bottom: 70px;
         }
         
-        /* Улучшенный прелоадер */
-        #preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--tg-bg-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        
-        #preloader.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-        
-        .preloader-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 30px;
-            opacity: 0;
-            transform: translateY(10px);
-            animation: logoReveal 0.6s ease 0.1s forwards;
-        }
-        
-        .preloader-logo-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: var(--primary-black);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 22px;
-        }
-        
-        .theme-dark .preloader-logo-icon {
-            background: var(--primary-white);
-            color: black;
-        }
-        
-        .preloader-logo-text {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-        
-        .preloader-spinner {
-            width: 40px;
-            height: 40px;
-            position: relative;
-            opacity: 0;
-            animation: spinnerReveal 0.6s ease 0.3s forwards;
-        }
-        
-        .preloader-spinner-circle {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            border-top-color: var(--tg-button-color);
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes logoReveal {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes spinnerReveal {
-            to {
-                opacity: 1;
-            }
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Компактный header */
+        /* Header */
         .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 12px;
-            background: var(--tg-bg-color);
             position: sticky;
             top: 0;
             z-index: 100;
+            background: var(--tg-bg-color);
             border-bottom: 1px solid var(--tg-border-color);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             backdrop-filter: blur(10px);
         }
         
@@ -190,88 +89,100 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 18px;
             font-weight: 700;
-            color: var(--tg-text-color);
-            text-decoration: none;
+            font-size: 18px;
         }
         
         .logo-icon {
             width: 36px;
             height: 36px;
             border-radius: 10px;
-            background: var(--primary-black);
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
             font-weight: bold;
-            font-size: 18px;
-        }
-        
-        .theme-dark .logo-icon {
-            background: var(--primary-white);
-            color: black;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
         .balance {
             background: var(--tg-button-color);
-            border-radius: var(--radius-md);
-            padding: 10px 14px;
-            font-weight: 700;
-            font-size: 16px;
             color: var(--tg-button-text-color);
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 600;
+            font-size: 16px;
             min-width: 100px;
             text-align: center;
-            font-family: 'Roboto Mono', monospace;
-            letter-spacing: 0.5px;
         }
         
-        .balance-currency {
-            font-size: 12px;
-            color: var(--tg-button-text-color);
-            margin-left: 2px;
-            opacity: 0.9;
-        }
-        
-        /* Основной контент */
+        /* Main Content */
         .main-content {
-            padding: 0 12px 12px;
+            padding: 0 16px 16px;
             max-height: calc(100vh - 130px);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
         
-        /* Курс всегда наверху */
+        /* Курс */
         .rate-info {
-            background: var(--tg-card-bg);
+            background: linear-gradient(135deg, var(--tg-card-bg), var(--tg-secondary-bg-color));
+            border: 1px solid var(--tg-border-color);
             border-radius: var(--radius-md);
             padding: 16px;
             margin: 12px 0;
             text-align: center;
-            border: 1px solid var(--tg-border-color);
-            font-size: 14px;
         }
         
         .rate-title {
+            font-size: 14px;
             color: var(--tg-secondary-text-color);
             margin-bottom: 4px;
-            font-weight: 500;
         }
         
         .rate-value {
+            font-size: 20px;
             font-weight: 700;
-            font-size: 18px;
             color: var(--tg-text-color);
         }
         
-        /* Карточки главного меню */
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--tg-card-bg);
+            border-top: 1px solid var(--tg-border-color);
+            display: flex;
+            padding: 8px 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            color: var(--tg-secondary-text-color);
+            text-decoration: none;
+            font-size: 10px;
+            transition: var(--transition);
+        }
+        
+        .nav-item.active {
+            color: var(--tg-button-color);
+        }
+        
+        .nav-item i {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        
+        /* Карточки меню */
         .main-menu {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -284,16 +195,12 @@
             border: 1px solid var(--tg-border-color);
             border-radius: var(--radius-md);
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             text-align: center;
             transition: var(--transition);
-            cursor: pointer;
         }
         
-        .menu-card:hover, .menu-card:active {
-            transform: translateY(-2px);
+        .menu-card:active {
+            transform: scale(0.98);
             border-color: var(--tg-button-color);
         }
         
@@ -301,35 +208,33 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 12px;
+            margin: 0 auto 12px;
             font-size: 20px;
-            background: var(--tg-button-color);
-            color: var(--tg-button-text-color);
         }
         
         .menu-card-title {
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 6px;
-            color: var(--tg-text-color);
         }
         
         .menu-card-description {
             font-size: 12px;
             color: var(--tg-secondary-text-color);
-            line-height: 1.3;
         }
         
-        /* Компактные формы */
+        /* Секции */
         .section {
             background: var(--tg-card-bg);
+            border: 1px solid var(--tg-border-color);
             border-radius: var(--radius-md);
             padding: 20px;
             margin-bottom: 16px;
-            border: 1px solid var(--tg-border-color);
             animation: fadeIn 0.3s ease;
         }
         
@@ -338,42 +243,33 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
         .section-title {
             font-size: 18px;
             font-weight: 700;
-            margin-bottom: 20px;
             color: var(--tg-text-color);
+        }
+        
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--tg-secondary-bg-color);
+            border: 1px solid var(--tg-border-color);
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            color: var(--tg-text-color);
+            font-size: 18px;
         }
         
-        /* Калькулятор Stars */
-        .calculator {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .calc-btn {
-            padding: 16px;
-            background: var(--tg-button-color);
-            border: 1px solid var(--tg-button-color);
-            border-radius: var(--radius-md);
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            transition: var(--transition);
-            color: var(--tg-button-text-color);
-        }
-        
-        .calc-btn.active {
-            background: var(--tg-text-color);
-            color: var(--tg-bg-color);
-        }
-        
-        /* Компактные поля ввода */
+        /* Формы */
         .form-group {
             margin-bottom: 20px;
         }
@@ -383,7 +279,6 @@
             margin-bottom: 8px;
             font-weight: 500;
             font-size: 14px;
-            color: var(--tg-text-color);
         }
         
         .form-input {
@@ -392,7 +287,6 @@
             background: var(--tg-input-bg);
             border: 1px solid var(--tg-border-color);
             border-radius: var(--radius-md);
-            font-family: 'Inter', sans-serif;
             font-size: 16px;
             color: var(--tg-text-color);
             transition: var(--transition);
@@ -404,10 +298,9 @@
         }
         
         .form-hint {
-            display: block;
-            margin-top: 6px;
             font-size: 12px;
             color: var(--tg-hint-color);
+            margin-top: 6px;
         }
         
         /* Кнопки */
@@ -418,15 +311,13 @@
             color: var(--tg-button-text-color);
             border: none;
             border-radius: var(--radius-md);
-            font-family: 'Inter', sans-serif;
             font-size: 16px;
             font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            transition: var(--transition);
         }
         
         .btn:active {
@@ -434,31 +325,63 @@
         }
         
         .btn-secondary {
-            background: transparent;
+            background: var(--tg-secondary-bg-color);
             color: var(--tg-text-color);
             border: 1px solid var(--tg-border-color);
         }
         
-        /* История операций */
-        .history-list {
-            max-height: 400px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+        /* Калькулятор */
+        .calculator {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
         }
         
-        .history-item {
-            background: var(--tg-card-bg);
+        .calc-btn {
+            padding: 16px;
+            background: var(--tg-secondary-bg-color);
             border: 1px solid var(--tg-border-color);
             border-radius: var(--radius-md);
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .calc-btn.active {
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
+            border-color: var(--tg-button-color);
+        }
+        
+        /* Расчет стоимости */
+        .calculation {
+            background: var(--tg-secondary-bg-color);
+            border-radius: var(--radius-md);
             padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .calculation-row {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 10px;
             font-size: 14px;
+        }
+        
+        .calculation-row.total {
+            font-weight: 700;
+            font-size: 16px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--tg-border-color);
         }
         
         /* Рулетка */
         .roulette-container {
             text-align: center;
-            padding: 10px 0;
+            padding: 20px 0;
         }
         
         .roulette-wheel {
@@ -477,250 +400,143 @@
                 var(--tg-button-color) 180deg 360deg
             );
             transition: transform 2s cubic-bezier(0.2, 0.8, 0.3, 1);
-            border: 3px solid var(--tg-border-color);
+            border: 2px solid var(--tg-border-color);
+        }
+        
+        .roulette-marker {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--tg-text-color);
+            font-size: 24px;
         }
         
         .roulette-cost {
             display: inline-block;
-            padding: 12px 20px;
+            padding: 12px 24px;
             background: var(--tg-button-color);
             color: var(--tg-button-text-color);
             border-radius: var(--radius-md);
             font-weight: 600;
             margin-bottom: 16px;
-            font-size: 14px;
         }
         
-        /* Нижнее меню навигации */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--tg-card-bg);
-            border-top: 1px solid var(--tg-border-color);
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 6px 12px;
-            text-decoration: none;
-            color: var(--tg-secondary-text-color);
-            transition: var(--transition);
-            font-size: 10px;
-            border-radius: var(--radius-sm);
-        }
-        
-        .nav-item.active {
-            color: var(--tg-button-color);
-            background: var(--tg-secondary-bg-color);
-        }
-        
-        .nav-item i {
-            font-size: 18px;
-            margin-bottom: 4px;
-        }
-        
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-20px);
+        .roulette-result {
             background: var(--tg-card-bg);
             border: 1px solid var(--tg-border-color);
             border-radius: var(--radius-md);
-            padding: 14px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            box-shadow: var(--tg-shadow);
-            z-index: 1000;
-            max-width: 320px;
-            width: 90%;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            opacity: 0;
-            border-left: 3px solid var(--tg-button-color);
+            padding: 24px;
+            text-align: center;
+            margin-top: 20px;
         }
         
-        .notification.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-        
-        /* Модальные окна */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        
-        .modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal-content {
-            background: var(--tg-card-bg);
-            border-radius: var(--radius-md);
-            max-width: 400px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            border: 1px solid var(--tg-border-color);
-        }
-        
-        .modal-header {
-            padding: 16px;
-            background: var(--tg-button-color);
-            color: var(--tg-button-text-color);
-            border-radius: var(--radius-md) var(--radius-md) 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 18px;
-            font-weight: 700;
-        }
-        
-        .modal-body {
-            padding: 20px;
-        }
-        
-        /* Скрытые элементы */
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Утилиты */
-        .mt-2 { margin-top: 12px; }
-        .mt-3 { margin-top: 16px; }
-        .text-center { text-align: center; }
-        
-        /* Анимации */
-        @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        /* Адаптивность */
-        @media (max-width: 480px) {
-            .main-menu {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .calculator {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .roulette-wheel {
-                width: 200px;
-                height: 200px;
-            }
-            
-            .header {
-                padding: 12px;
-            }
-            
-            .balance {
-                min-width: 90px;
-                padding: 8px 12px;
-                font-size: 15px;
-            }
-            
-            .nav-item {
-                padding: 6px 8px;
-                font-size: 9px;
-            }
-            
-            .nav-item i {
-                font-size: 16px;
-            }
-        }
-        
-        @media (min-width: 768px) {
-            .main-content {
-                padding: 0 20px 20px;
-            }
-            
-            .header {
-                padding: 20px;
-            }
-            
-            .bottom-nav {
-                display: none;
-            }
-            
-            body {
-                padding-bottom: 20px;
-            }
-        }
-        
-        /* Прокрутка */
-        .scrollable {
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .scrollable::-webkit-scrollbar {
-            width: 4px;
-        }
-        
-        .scrollable::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        
-        .scrollable::-webkit-scrollbar-thumb {
-            background: var(--tg-border-color);
-            border-radius: 2px;
-        }
-        
-        /* Быстрые действия */
-        .quick-actions {
-            display: flex;
-            gap: 8px;
+        .roulette-result-icon {
+            font-size: 48px;
             margin-bottom: 16px;
         }
         
-        .quick-action-btn {
-            flex: 1;
-            padding: 12px;
+        .roulette-result-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .roulette-result-description {
+            color: var(--tg-secondary-text-color);
+            margin-bottom: 16px;
+        }
+        
+        .roulette-prize {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--tg-button-color);
+            margin: 16px 0;
+        }
+        
+        /* История */
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .history-item {
             background: var(--tg-card-bg);
             border: 1px solid var(--tg-border-color);
             border-radius: var(--radius-md);
-            font-size: 14px;
-            text-align: center;
-            transition: var(--transition);
+            padding: 16px;
+            margin-bottom: 10px;
         }
         
-        .quick-action-btn:active {
+        .history-title {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .history-subtitle {
+            font-size: 12px;
+            color: var(--tg-secondary-text-color);
+            margin-bottom: 4px;
+        }
+        
+        .history-amount {
+            text-align: right;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .history-amount.negative {
+            color: var(--error-color);
+        }
+        
+        .history-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .status-success {
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--tg-text-color);
+        }
+        
+        .status-pending {
+            background: rgba(255, 149, 0, 0.1);
+            color: var(--warning-color);
+        }
+        
+        /* Админ панель */
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .admin-tab {
+            padding: 12px 16px;
             background: var(--tg-secondary-bg-color);
+            border: 1px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
         }
         
-        /* Компактная статистика */
+        .admin-tab.active {
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
+            border-color: var(--tg-button-color);
+        }
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -746,44 +562,182 @@
             font-size: 12px;
             color: var(--tg-secondary-text-color);
         }
+        
+        /* Модальные окна */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: var(--tg-card-bg);
+            border-radius: var(--radius-md);
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            background: var(--tg-button-color);
+            color: var(--tg-button-text-color);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .modal-close {
+            background: rgba(0, 0, 0, 0.2);
+            border: none;
+            color: var(--tg-button-text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 20px;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--tg-card-bg);
+            border: 1px solid var(--tg-border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            max-width: 320px;
+            width: 90%;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--tg-button-color);
+        }
+        
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .notification-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .notification-text {
+            font-size: 14px;
+            color: var(--tg-secondary-text-color);
+        }
+        
+        /* Скрытые элементы */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Прокрутка */
+        .scrollable {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .scrollable::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .scrollable::-webkit-scrollbar-thumb {
+            background: var(--tg-border-color);
+            border-radius: 2px;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .main-menu {
+                grid-template-columns: 1fr;
+            }
+            
+            .calculator {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .roulette-wheel {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .header {
+                padding: 12px;
+            }
+            
+            .balance {
+                min-width: 90px;
+                padding: 8px 12px;
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Preloader -->
-    <div id="preloader">
-        <div class="preloader-logo">
-            <div class="preloader-logo-icon">★</div>
-            <div class="preloader-logo-text">StarsPayers</div>
-        </div>
-        <div class="preloader-spinner">
-            <div class="preloader-spinner-circle"></div>
-        </div>
-    </div>
-
     <!-- Header -->
     <div class="header">
         <div class="logo">
             <div class="logo-icon">★</div>
             <span>StarsPayers</span>
         </div>
-        <div class="user-info">
-            <div class="balance" id="balance">0<span class="balance-currency">₽</span></div>
-        </div>
+        <div class="balance" id="balance">0 ₽</div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content scrollable" id="main-content">
-        <!-- Курс всегда виден -->
+        <!-- Курс -->
         <div class="rate-info">
             <div class="rate-title">Курс Telegram Stars</div>
             <div class="rate-value">1 STAR = 1.1 ₽</div>
         </div>
 
-        <!-- Динамический контент -->
+        <!-- Динамическое содержимое -->
         <div id="content-area"></div>
     </div>
 
-    <!-- Нижнее меню -->
+    <!-- Нижняя навигация -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showSection('main')">
             <i class="fas fa-home"></i>
@@ -793,9 +747,9 @@
             <i class="fas fa-star"></i>
             <span>Купить Stars</span>
         </div>
-        <div class="nav-item" onclick="showSection('topup')">
-            <i class="fas fa-wallet"></i>
-            <span>Пополнить</span>
+        <div class="nav-item" onclick="showSection('roulette')">
+            <i class="fas fa-dice"></i>
+            <span>Рулетка</span>
         </div>
         <div class="nav-item" onclick="showSection('history')">
             <i class="fas fa-history"></i>
@@ -816,7 +770,7 @@
             </div>
             <div class="modal-body">
                 <div class="text-center">
-                    <i class="fas fa-external-link-alt" style="font-size: 48px; color: var(--tg-text-color); margin-bottom: 20px;"></i>
+                    <i class="fas fa-external-link-alt" style="font-size: 48px; margin-bottom: 20px; color: var(--tg-text-color);"></i>
                     <h3 style="margin-bottom: 16px; font-size: 18px;">Переход на страницу оплаты</h3>
                     <p style="color: var(--tg-secondary-text-color); margin-bottom: 20px; font-size: 14px;">
                         Вы будете перенаправлены на страницу ЮMoney для завершения платежа.
@@ -839,12 +793,59 @@
         </div>
     </div>
 
-    <div id="notification" class="notification">
-        <div class="notification-icon" id="notification-icon">★</div>
-        <div class="notification-content">
-            <div class="notification-title" id="notification-title">Уведомление</div>
-            <p class="notification-text" id="notification-text">Текст уведомления</p>
+    <div id="agreementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Пользовательское соглашение</div>
+                <button class="modal-close" onclick="closeModal('agreementModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <h4 style="margin-bottom: 16px;">StarsPayers</h4>
+                <div style="color: var(--tg-secondary-text-color); font-size: 14px; line-height: 1.5;">
+                    <p><strong>Курс обмена:</strong> 1 Telegram Star = 1.1 RUB</p>
+                    <p><strong>Минимальная покупка:</strong> 100 Stars</p>
+                    <p><strong>Максимальная покупка:</strong> 100,000 Stars</p>
+                    <p><strong>Комиссия:</strong> 1.5% от суммы</p>
+                    <p><strong>Срок обработки:</strong> 1-7 рабочих дней</p>
+                    <p><strong>Поддержка:</strong> starspayers@mail.ru</p>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <div id="editBalanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Изменение баланса</div>
+                <button class="modal-close" onclick="closeModal('editBalanceModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="edit-balance-info" style="margin-bottom: 20px; padding: 16px; background: var(--tg-secondary-bg-color); border-radius: var(--radius-md);">
+                    <div style="margin-bottom: 8px;"><strong>Пользователь:</strong> <span id="edit-user-name">-</span></div>
+                    <div style="margin-bottom: 8px;"><strong>Username:</strong> <span id="edit-user-username">-</span></div>
+                    <div><strong>Текущий баланс:</strong> <span id="edit-current-balance">0 ₽</span></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Новый баланс (₽)</label>
+                    <input type="number" class="form-input" id="new-balance-input" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Причина изменения</label>
+                    <input type="text" class="form-input" id="balance-change-reason" placeholder="Например: Бонус за активность">
+                </div>
+                <button class="btn" onclick="saveUserBalance()">
+                    <i class="fas fa-save"></i>
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомление -->
+    <div id="notification" class="notification">
+        <div class="notification-icon">★</div>
+        <div class="notification-title" id="notification-title">Уведомление</div>
+        <div class="notification-text" id="notification-text">Текст уведомления</div>
     </div>
 
     <script>
@@ -861,47 +862,32 @@
         appId: "1:706696825244:web:e8de79e5cdae5df9606059"
     };
     
-    // Инициализация Firebase
-    let app, db;
-    let firebaseInitialized = false;
-    
     // Глобальные переменные
+    let app, db;
     let currentUser = null;
-    let userBalance = 0;
+    let userBalance = 1000;
     let userTransactions = [];
     const STAR_RATE = 1.1;
     const ROULETTE_COST = 30 * STAR_RATE;
+    const NFT_VALUE = 600 * STAR_RATE;
     let currentTopupCard = '';
     let currentTopupAmount = 0;
     let isAdmin = false;
+    let editingUserId = null;
     let isRouletteSpinning = false;
     
     // Шаблоны для разных страниц
     const templates = {
         main: `
             <div class="section">
-                <div class="section-title">
-                    <i class="fas fa-home"></i>
-                    <span>Главное меню</span>
-                </div>
-                
-                <div class="quick-actions">
-                    <div class="quick-action-btn" onclick="buyStarsQuick(100)">
-                        <div style="font-weight: 600;">100 Stars</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">110 ₽</div>
-                    </div>
-                    <div class="quick-action-btn" onclick="buyStarsQuick(500)">
-                        <div style="font-weight: 600;">500 Stars</div>
-                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">550 ₽</div>
-                    </div>
-                </div>
+                <div class="section-title">Главное меню</div>
                 
                 <div class="main-menu">
                     <div class="menu-card" onclick="showSection('buy')">
                         <div class="menu-card-icon">
                             <i class="fas fa-star"></i>
                         </div>
-                        <div class="menu-card-title">Купить Stars</div>
+                        <div class="menu-card-title">Купить Telegram Stars</div>
                         <div class="menu-card-description">
                             Приобретайте Telegram Stars по выгодному курсу
                         </div>
@@ -913,7 +899,7 @@
                         </div>
                         <div class="menu-card-title">Рулетка</div>
                         <div class="menu-card-description">
-                            Крутите колесо за 30 Stars
+                            Крутите колесо за 30 Stars. Шанс 50/50
                         </div>
                     </div>
                     
@@ -923,7 +909,7 @@
                         </div>
                         <div class="menu-card-title">Пополнить баланс</div>
                         <div class="menu-card-description">
-                            Добавьте средства на баланс
+                            Добавьте средства на баланс для покупок
                         </div>
                     </div>
                     
@@ -931,20 +917,29 @@
                         <div class="menu-card-icon">
                             <i class="fas fa-history"></i>
                         </div>
-                        <div class="menu-card-title">История</div>
+                        <div class="menu-card-title">История операций</div>
                         <div class="menu-card-description">
-                            Просмотр всех операций
+                            Просмотр всех транзакций и заявок
                         </div>
                     </div>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-secondary" onclick="openModal('agreementModal')">
+                        <i class="fas fa-file-contract"></i>
+                        Пользовательское соглашение
+                    </button>
                 </div>
             </div>
         `,
         
         buy: `
             <div class="section">
-                <div class="section-title">
-                    <i class="fas fa-arrow-left" style="cursor: pointer;" onclick="showSection('main')"></i>
-                    <span>Покупка Telegram Stars</span>
+                <div class="section-header">
+                    <button class="back-btn" onclick="showSection('main')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="section-title">Покупка Telegram Stars</div>
                 </div>
                 
                 <div class="calculator">
@@ -954,44 +949,49 @@
                     <div class="calc-btn" onclick="setStarsAmount(5000)">5000</div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label">Количество Stars</label>
-                    <input type="number" class="form-input" id="stars-amount" placeholder="Введите количество" min="100" max="100000" value="100" required>
-                    <span class="form-hint">Минимум: 100 Stars, максимум: 100,000 Stars</span>
-                </div>
-                
-                <div style="background: var(--tg-secondary-bg-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                        <span>Стоимость Stars:</span>
-                        <span id="stars-cost">110.00 ₽</span>
+                <form id="buy-form" onsubmit="event.preventDefault(); buyStarsSubmit();">
+                    <div class="form-group">
+                        <label class="form-label">Количество Stars</label>
+                        <input type="number" class="form-input" id="stars-amount" placeholder="Введите количество" min="100" max="100000" value="100" required>
+                        <span class="form-hint">Минимум: 100 Stars, максимум: 100,000 Stars</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                        <span>Комиссия (1.5%):</span>
-                        <span id="commission">1.65 ₽</span>
+                    
+                    <div class="calculation">
+                        <div class="calculation-row">
+                            <span>Стоимость Stars:</span>
+                            <span id="stars-cost">110.00 ₽</span>
+                        </div>
+                        <div class="calculation-row">
+                            <span>Комиссия (1.5%):</span>
+                            <span id="commission">1.65 ₽</span>
+                        </div>
+                        <div class="calculation-row total">
+                            <span>Итого к оплате:</span>
+                            <span id="total-cost">111.65 ₽</span>
+                        </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 16px;">
-                        <span>Итого к оплате:</span>
-                        <span id="total-cost">111.65 ₽</span>
-                    </div>
-                </div>
-                
-                <button class="btn" onclick="buyStarsSubmit()">
-                    <i class="fas fa-shopping-cart"></i>
-                    Купить Stars
-                </button>
+                    
+                    <button type="submit" class="btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Купить Stars
+                    </button>
+                </form>
             </div>
         `,
         
         roulette: `
             <div class="section">
-                <div class="section-title">
-                    <i class="fas fa-arrow-left" style="cursor: pointer;" onclick="showSection('main')"></i>
-                    <span>Рулетка</span>
+                <div class="section-header">
+                    <button class="back-btn" onclick="showSection('main')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="section-title">Рулетка</div>
                 </div>
                 
                 <div class="roulette-container">
                     <div class="roulette-wheel">
                         <div class="roulette-wheel-inner" id="roulette-wheel"></div>
+                        <div class="roulette-marker">▼</div>
                     </div>
                     
                     <div class="roulette-cost">
@@ -1000,7 +1000,7 @@
                     
                     <div style="margin-bottom: 20px; color: var(--tg-secondary-text-color); font-size: 14px;">
                         <p>Шанс выигрыша NFT: 50%</p>
-                        <p>Стоимость NFT: 600 Stars</p>
+                        <p>Стоимость NFT: 600 Stars (${NFT_VALUE.toFixed(2)} ₽)</p>
                     </div>
                     
                     <button class="btn" id="spin-button" onclick="spinRoulette()">
@@ -1008,44 +1008,61 @@
                         Крутить рулетку
                     </button>
                 </div>
+                
+                <div id="roulette-result" class="roulette-result hidden">
+                    <div class="roulette-result-icon" id="roulette-result-icon"></div>
+                    <div class="roulette-result-title" id="roulette-result-title"></div>
+                    <div class="roulette-result-description" id="roulette-result-description"></div>
+                    <div class="roulette-prize" id="roulette-prize"></div>
+                    <button class="btn" onclick="closeRouletteResult()">
+                        <i class="fas fa-check"></i>
+                        Понятно
+                    </button>
+                </div>
             </div>
         `,
         
         topup: `
             <div class="section">
-                <div class="section-title">
-                    <i class="fas fa-arrow-left" style="cursor: pointer;" onclick="showSection('main')"></i>
-                    <span>Пополнение баланса</span>
+                <div class="section-header">
+                    <button class="back-btn" onclick="showSection('main')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="section-title">Пополнение баланса</div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label">Сумма пополнения (₽)</label>
-                    <input type="number" class="form-input" id="topup-amount" placeholder="Введите сумму" min="10" step="0.01" required>
-                    <span class="form-hint">Минимальная сумма: 10 ₽</span>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Номер банковской карты</label>
-                    <input type="text" class="form-input" id="topup-card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
-                    <span class="form-hint">Введите 16-19 цифр номера карты</span>
-                </div>
-                
-                <button class="btn" onclick="createTopupRequest()">
-                    <i class="fas fa-credit-card"></i>
-                    Создать заявку
-                </button>
+                <form id="topup-form" onsubmit="event.preventDefault(); createTopupRequest();">
+                    <div class="form-group">
+                        <label class="form-label">Сумма пополнения (₽)</label>
+                        <input type="number" class="form-input" id="topup-amount" placeholder="Введите сумму" min="10" step="0.01" required>
+                        <span class="form-hint">Минимальная сумма: 10 ₽</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Номер банковской карты</label>
+                        <input type="text" class="form-input" id="topup-card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                        <span class="form-hint">Введите 16-19 цифр номера карты</span>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <i class="fas fa-credit-card"></i>
+                        Создать заявку и оплатить
+                    </button>
+                </form>
             </div>
         `,
         
         history: `
             <div class="section">
-                <div class="section-title">
-                    <i class="fas fa-arrow-left" style="cursor: pointer;" onclick="showSection('main')"></i>
-                    <span>История операций</span>
+                <div class="section-header">
+                    <button class="back-btn" onclick="showSection('main')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="section-title">История операций</div>
                 </div>
                 
                 <div id="history-content">
-                    <div class="text-center" style="padding: 40px 0; color: var(--tg-secondary-text-color);">
+                    <div style="text-align: center; padding: 40px 0; color: var(--tg-secondary-text-color);">
                         <i class="fas fa-star" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
                         <p>История операций пуста</p>
                     </div>
@@ -1055,25 +1072,114 @@
         
         about: `
             <div class="section">
-                <div class="section-title">
-                    <i class="fas fa-arrow-left" style="cursor: pointer;" onclick="showSection('main')"></i>
-                    <span>О сервисе StarsPayers</span>
+                <div class="section-header">
+                    <button class="back-btn" onclick="showSection('main')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="section-title">О сервисе StarsPayers</div>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <p style="color: var(--tg-secondary-text-color); margin-bottom: 16px; font-size: 14px;">
+                    <p style="color: var(--tg-secondary-text-color); margin-bottom: 16px; font-size: 14px; line-height: 1.5;">
                         Telegram Stars — это внутренняя валюта Telegram, которую можно использовать для покупки NFT и подарков от Telegram, поддержки авторов и оплаты услуг в ботовых приложениях.
                     </p>
                 </div>
                 
-                <div style="background: var(--tg-secondary-bg-color); border-radius: var(--radius-md); padding: 16px; border: 1px solid var(--tg-border-color);">
-                    <h4 style="margin-bottom: 12px; font-size: 16px; font-weight: 700;">Как использовать Stars?</h4>
-                    <ul style="color: var(--tg-secondary-text-color); padding-left: 20px; font-size: 14px;">
-                        <li style="margin-bottom: 8px;">Покупка NFT и подаров</li>
-                        <li style="margin-bottom: 8px;">Поддержка авторов каналов</li>
-                        <li style="margin-bottom: 8px;">Оплата услуг в ботах</li>
-                        <li>Покупка премиум-подписок</li>
-                    </ul>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div style="text-align: center; padding: 16px; background: var(--tg-card-bg); border: 1px solid var(--tg-border-color); border-radius: var(--radius-md);">
+                        <i class="fas fa-bolt" style="font-size: 24px; margin-bottom: 8px; color: var(--tg-text-color);"></i>
+                        <div style="font-weight: 600; font-size: 14px;">Низкая цена</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 16px; background: var(--tg-card-bg); border: 1px solid var(--tg-border-color); border-radius: var(--radius-md);">
+                        <i class="fas fa-shield-alt" style="font-size: 24px; margin-bottom: 8px; color: var(--tg-text-color);"></i>
+                        <div style="font-weight: 600; font-size: 14px;">Защита транзакций</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 16px; background: var(--tg-card-bg); border: 1px solid var(--tg-border-color); border-radius: var(--radius-md);">
+                        <i class="fas fa-percent" style="font-size: 24px; margin-bottom: 8px; color: var(--tg-text-color);"></i>
+                        <div style="font-weight: 600; font-size: 14px;">Низкая комиссия</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 16px; background: var(--tg-card-bg); border: 1px solid var(--tg-border-color); border-radius: var(--radius-md);">
+                        <i class="fas fa-headset" style="font-size: 24px; margin-bottom: 8px; color: var(--tg-text-color);"></i>
+                        <div style="font-weight: 600; font-size: 14px;">24/7 Поддержка</div>
+                    </div>
+                </div>
+            </div>
+        `,
+        
+        admin: `
+            <div class="section">
+                <div class="section-header">
+                    <button class="back-btn" onclick="showSection('main')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="section-title">Админ панель</div>
+                </div>
+                
+                <div class="admin-tabs">
+                    <div class="admin-tab active" onclick="showAdminSection('stats')">Статистика</div>
+                    <div class="admin-tab" onclick="showAdminSection('transactions')">Транзакции</div>
+                    <div class="admin-tab" onclick="showAdminSection('users')">Пользователи</div>
+                </div>
+                
+                <div id="admin-content">
+                    <div id="admin-stats">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-users">0</div>
+                                <div class="stat-label">Пользователей</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-transactions">0</div>
+                                <div class="stat-label">Транзакций</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-stars">0</div>
+                                <div class="stat-label">Продано Stars</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-revenue">0 ₽</div>
+                                <div class="stat-label">Выручка</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-secondary" onclick="loadAdminStats()" style="margin-top: 16px;">
+                            <i class="fas fa-sync-alt"></i>
+                            Обновить статистику
+                        </button>
+                    </div>
+                    
+                    <div id="admin-transactions" class="hidden">
+                        <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
+                            <button class="admin-tab" onclick="loadAdminTransactions('all')">Все</button>
+                            <button class="admin-tab" onclick="loadAdminTransactions('stars')">Stars</button>
+                            <button class="admin-tab" onclick="loadAdminTransactions('topup')">Пополнения</button>
+                            <button class="admin-tab" onclick="loadAdminTransactions('roulette')">Рулетка</button>
+                        </div>
+                        
+                        <div id="admin-transactions-content">
+                            <div style="text-align: center; padding: 40px 0; color: var(--tg-secondary-text-color);">
+                                <i class="fas fa-database" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                                <p>Загрузите транзакции</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="admin-users" class="hidden">
+                        <button class="btn btn-secondary" onclick="loadAdminUsers()" style="margin-bottom: 16px;">
+                            <i class="fas fa-sync-alt"></i>
+                            Обновить список
+                        </button>
+                        
+                        <div id="admin-users-content">
+                            <div style="text-align: center; padding: 40px 0; color: var(--tg-secondary-text-color);">
+                                <i class="fas fa-users" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                                <p>Загрузите пользователей</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `
@@ -1084,7 +1190,7 @@
         const contentArea = document.getElementById('content-area');
         const navItems = document.querySelectorAll('.nav-item');
         
-        // Обновляем активный пункт меню
+        // Обновляем навигацию
         navItems.forEach(item => {
             item.classList.remove('active');
             if (item.getAttribute('onclick')?.includes(sectionId)) {
@@ -1096,23 +1202,13 @@
         if (templates[sectionId]) {
             contentArea.innerHTML = templates[sectionId];
             
-            // Инициализируем компоненты если нужно
+            // Инициализируем компоненты
             if (sectionId === 'buy') {
-                setTimeout(() => {
-                    updateStarsCost();
-                    document.getElementById('stars-amount').addEventListener('input', updateStarsCost);
-                }, 100);
+                initBuySection();
             } else if (sectionId === 'history') {
                 updateHistory();
-            } else if (sectionId === 'topup') {
-                const cardInput = document.getElementById('topup-card-number');
-                if (cardInput) {
-                    cardInput.addEventListener('input', function(e) {
-                        let value = e.target.value.replace(/\D/g, '');
-                        value = value.replace(/(.{4})/g, '$1 ').trim();
-                        e.target.value = value.substring(0, 19);
-                    });
-                }
+            } else if (sectionId === 'admin') {
+                showAdminSection('stats');
             }
         }
         
@@ -1123,8 +1219,7 @@
     function updateBalance() {
         const balanceElement = document.getElementById('balance');
         if (balanceElement) {
-            const formattedBalance = userBalance.toFixed(2).replace('.', ',');
-            balanceElement.innerHTML = `${formattedBalance}<span class="balance-currency">₽</span>`;
+            balanceElement.textContent = userBalance.toFixed(2) + ' ₽';
         }
     }
     
@@ -1132,16 +1227,18 @@
         const notification = document.getElementById('notification');
         const titleElement = document.getElementById('notification-title');
         const textElement = document.getElementById('notification-text');
-        const iconElement = document.getElementById('notification-icon');
         
         titleElement.textContent = title;
         textElement.textContent = message;
         
-        notification.classList.remove('show');
+        // Цвета в зависимости от типа
+        notification.style.borderLeftColor = type === 'success' ? 'var(--tg-button-color)' : 
+                                           type === 'error' ? 'var(--error-color)' : 
+                                           type === 'warning' ? 'var(--warning-color)' : 
+                                           'var(--tg-button-color)';
         
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
+        notification.classList.remove('show');
+        setTimeout(() => notification.classList.add('show'), 10);
         
         setTimeout(() => {
             notification.classList.remove('show');
@@ -1149,35 +1246,44 @@
     }
     
     function openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('show');
-        }
+        document.getElementById(modalId)?.classList.add('show');
     }
     
     function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('show');
+        document.getElementById(modalId)?.classList.remove('show');
+    }
+    
+    // Покупка Stars
+    function initBuySection() {
+        updateStarsCost();
+        const starsInput = document.getElementById('stars-amount');
+        if (starsInput) {
+            starsInput.addEventListener('input', updateStarsCost);
         }
+        
+        document.querySelectorAll('.calc-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.calc-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
     }
     
     function updateStarsCost() {
         const starsInput = document.getElementById('stars-amount');
-        let stars = parseInt(starsInput?.value) || 0;
+        if (!starsInput) return;
         
-        if (stars < 10) stars = 10;
+        let stars = parseInt(starsInput.value) || 0;
+        if (stars < 100) stars = 100;
         if (stars > 100000) stars = 100000;
         
         const cost = stars * STAR_RATE;
         const commission = cost * 0.015;
         const total = cost + commission;
         
-        if (document.getElementById('stars-cost')) {
-            document.getElementById('stars-cost').textContent = cost.toFixed(2).replace('.', ',') + ' ₽';
-            document.getElementById('commission').textContent = commission.toFixed(2).replace('.', ',') + ' ₽';
-            document.getElementById('total-cost').textContent = total.toFixed(2).replace('.', ',') + ' ₽';
-        }
+        document.getElementById('stars-cost').textContent = cost.toFixed(2) + ' ₽';
+        document.getElementById('commission').textContent = commission.toFixed(2) + ' ₽';
+        document.getElementById('total-cost').textContent = total.toFixed(2) + ' ₽';
     }
     
     function setStarsAmount(amount) {
@@ -1186,11 +1292,62 @@
             starsInput.value = amount;
             updateStarsCost();
         }
+    }
+    
+    async function buyStarsSubmit() {
+        const starsInput = document.getElementById('stars-amount');
+        const stars = parseInt(starsInput?.value) || 0;
         
-        document.querySelectorAll('.calc-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        event.target.classList.add('active');
+        if (stars < 100 || stars > 100000) {
+            showNotification('Ошибка', 'Введите от 100 до 100,000 Stars', 'error');
+            return;
+        }
+        
+        const cost = stars * STAR_RATE;
+        const commission = cost * 0.015;
+        const total = cost + commission;
+        
+        if (total > userBalance) {
+            showNotification('Ошибка', `Недостаточно средств. Нужно: ${total.toFixed(2)} ₽`, 'error');
+            return;
+        }
+        
+        try {
+            const result = await buyStars(stars);
+            if (result.success) {
+                showNotification('Успешно!', `Куплено ${stars} Telegram Stars`, 'success');
+                setTimeout(() => showSection('main'), 1000);
+            }
+        } catch (error) {
+            showNotification('Ошибка', 'Не удалось завершить покупку', 'error');
+        }
+    }
+    
+    async function buyStars(starsAmount) {
+        const cost = starsAmount * STAR_RATE;
+        const commission = cost * 0.015;
+        const total = cost + commission;
+        
+        userBalance -= total;
+        updateBalance();
+        
+        const transaction = {
+            type: 'stars_purchase',
+            amount: -total,
+            stars: starsAmount,
+            cost: cost,
+            commission: commission,
+            total: total,
+            status: 'completed',
+            description: `Покупка ${starsAmount} Telegram Stars`,
+            date: new Date().toLocaleDateString('ru-RU'),
+            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+        };
+        
+        userTransactions.push(transaction);
+        updateHistory();
+        
+        return { success: true, transaction };
     }
     
     // Рулетка
@@ -1198,7 +1355,7 @@
         if (isRouletteSpinning) return;
         
         if (userBalance < ROULETTE_COST) {
-            showNotification('Ошибка', `Недостаточно средств. Нужно ${ROULETTE_COST.toFixed(2)} ₽ (30 Stars)`, 'error');
+            showNotification('Ошибка', `Недостаточно средств. Нужно ${ROULETTE_COST.toFixed(2)} ₽`, 'error');
             return;
         }
         
@@ -1207,20 +1364,13 @@
         spinButton.disabled = true;
         spinButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Крутим...';
         
-        const random = Math.random() * 100;
-        let prize;
-        
-        if (random <= 50) {
-            prize = { type: 'nft', name: 'NFT 600 Stars', stars: 600, probability: 50 };
-        } else {
-            prize = { type: 'nothing', name: 'Ничего', stars: 0, probability: 50 };
-        }
+        const random = Math.random();
+        const prize = random <= 0.5 ? 'nft' : 'nothing';
         
         const rouletteWheel = document.getElementById('roulette-wheel');
         const spins = 5 + Math.random() * 2;
         const extraRotation = Math.random() * 360;
         
-        rouletteWheel.style.transition = 'transform 2s cubic-bezier(0.2, 0.8, 0.3, 1)';
         rouletteWheel.style.transform = `rotate(${spins * 360 + extraRotation}deg)`;
         
         setTimeout(() => {
@@ -1236,145 +1386,67 @@
         userBalance -= ROULETTE_COST;
         updateBalance();
         
-        addTransaction({
+        // Запись спина
+        userTransactions.push({
             type: 'roulette_spin',
             amount: -ROULETTE_COST,
             stars: 30,
             status: 'completed',
-            description: `Спин рулетки (30 Stars)`
+            description: 'Спин рулетки',
+            date: new Date().toLocaleDateString('ru-RU'),
+            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
         });
         
-        if (prize.type === 'nothing') {
+        const resultElement = document.getElementById('roulette-result');
+        const resultIcon = document.getElementById('roulette-result-icon');
+        const resultTitle = document.getElementById('roulette-result-title');
+        const resultDescription = document.getElementById('roulette-result-description');
+        const prizeElement = document.getElementById('roulette-prize');
+        
+        if (prize === 'nothing') {
+            resultIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+            resultTitle.textContent = 'Увы...';
+            resultDescription.textContent = 'В этот раз не повезло. Попробуйте еще раз!';
+            prizeElement.textContent = 'Ничего';
+            prizeElement.style.color = 'var(--tg-secondary-text-color)';
+            
             showNotification('Рулетка', 'К сожалению, вы ничего не выиграли', 'info');
         } else {
-            addTransaction({
+            resultIcon.innerHTML = '<i class="fas fa-trophy"></i>';
+            resultTitle.textContent = 'Поздравляем!';
+            resultDescription.textContent = 'Вы выиграли NFT 600 Stars! С вами свяжется администратор для выдачи приза.';
+            prizeElement.textContent = 'NFT 600 Stars';
+            prizeElement.style.color = 'var(--tg-button-color)';
+            
+            // Запись выигрыша
+            userTransactions.push({
                 type: 'roulette_win_nft',
                 amount: 0,
                 stars: 600,
                 status: 'pending',
-                description: `Выигрыш в рулетке: NFT 600 Stars`
+                description: 'Выигрыш NFT в рулетке',
+                date: new Date().toLocaleDateString('ru-RU'),
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
             });
             
             showNotification('Поздравляем!', 'Вы выиграли NFT 600 Stars!', 'success');
         }
-    }
-    
-    // Оптимизированные функции покупки
-    async function buyStarsQuick(amount) {
-        const cost = amount * STAR_RATE;
-        const commission = cost * 0.015;
-        const total = cost + commission;
         
-        if (total > userBalance) {
-            showNotification('Ошибка', `Недостаточно средств. Нужно: ${total.toFixed(2)} ₽`, 'error');
-            return;
-        }
-        
-        const result = await buyStars(amount);
-        if (result.success) {
-            showNotification('Успешно!', `Куплено ${amount} Telegram Stars`, 'success');
-        }
-    }
-    
-    async function buyStarsSubmit() {
-        const starsInput = document.getElementById('stars-amount');
-        const stars = parseInt(starsInput?.value) || 0;
-        
-        if (stars < 10 || stars > 100000) {
-            showNotification('Ошибка', 'Количество Stars должно быть от 10 до 100,000', 'error');
-            return;
-        }
-        
-        const cost = stars * STAR_RATE;
-        const commission = cost * 0.015;
-        const total = cost + commission;
-        
-        if (total > userBalance) {
-            showNotification('Ошибка', `Недостаточно средств. Нужно: ${total.toFixed(2)} ₽`, 'error');
-            return;
-        }
-        
-        const result = await buyStars(stars);
-        if (result.success) {
-            showNotification('Успешно!', `Куплено ${stars} Telegram Stars`, 'success');
-            setTimeout(() => showSection('main'), 1000);
-        }
-    }
-    
-    // Инициализация пользователя (упрощенная)
-    async function initUser() {
-        // Демо-режим для быстрой работы
-        currentUser = {
-            id: 'demo_user',
-            name: 'Демо Пользователь',
-            telegramId: 123456789,
-            username: 'demo_user'
-        };
-        
-        userBalance = 1000;
-        userTransactions = [];
-        
-        updateBalance();
-        
-        // Проверяем админские права
-        isAdmin = currentUser.username === 'iwnel';
-        if (isAdmin) {
-            addAdminNav();
-        }
-    }
-    
-    function addAdminNav() {
-        const bottomNav = document.querySelector('.bottom-nav');
-        const adminNav = document.createElement('div');
-        adminNav.className = 'nav-item';
-        adminNav.setAttribute('onclick', "showSection('admin')");
-        adminNav.innerHTML = '<i class="fas fa-user-shield"></i><span>Админ</span>';
-        bottomNav.appendChild(adminNav);
-    }
-    
-    async function addTransaction(transaction) {
-        if (!currentUser) return;
-        
-        const fullTransaction = {
-            ...transaction,
-            id: 'tx_' + Date.now(),
-            timestamp: new Date().toISOString(),
-            date: new Date().toLocaleDateString('ru-RU'),
-            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            userId: currentUser.id,
-            userName: currentUser.name
-        };
-        
-        if (transaction.amount !== undefined) {
-            userBalance += transaction.amount;
-        }
-        
-        userTransactions.push(fullTransaction);
-        updateBalance();
+        resultElement.classList.remove('hidden');
         updateHistory();
-        
-        return fullTransaction;
     }
     
-    async function buyStars(starsAmount) {
-        const cost = starsAmount * STAR_RATE;
-        const commission = cost * 0.015;
-        const total = cost + commission;
-        
-        const transaction = await addTransaction({
-            type: 'stars_purchase',
-            amount: -total,
-            stars: starsAmount,
-            cost: cost,
-            commission: commission,
-            total: total,
-            status: 'completed',
-            description: `Покупка ${starsAmount} Telegram Stars`
-        });
-        
-        return { success: true, transaction };
+    function closeRouletteResult() {
+        document.getElementById('roulette-result').classList.add('hidden');
+        const rouletteWheel = document.getElementById('roulette-wheel');
+        rouletteWheel.style.transition = 'none';
+        rouletteWheel.style.transform = 'rotate(0deg)';
+        setTimeout(() => {
+            rouletteWheel.style.transition = 'transform 2s cubic-bezier(0.2, 0.8, 0.3, 1)';
+        }, 10);
     }
     
+    // Пополнение баланса
     async function createTopupRequest() {
         const amountInput = document.getElementById('topup-amount');
         const cardInput = document.getElementById('topup-card-number');
@@ -1383,7 +1455,7 @@
         const cardNumber = cardInput?.value.replace(/\s/g, '');
         
         if (isNaN(amount) || amount < 10) {
-            showNotification('Ошибка', 'Минимальная сумма пополнения: 10 ₽', 'error');
+            showNotification('Ошибка', 'Минимальная сумма: 10 ₽', 'error');
             return;
         }
         
@@ -1396,82 +1468,23 @@
         currentTopupCard = cardNumber;
         currentTopupAmount = amount;
         
-        const transaction = await addTransaction({
+        // Запись заявки
+        userTransactions.push({
             type: 'topup_request',
             amount: 0,
             cardNumber: cardNumber,
             maskedCard: maskedCard,
             topupAmount: amount,
             status: 'pending',
-            description: `Заявка на пополнение на ${amount.toFixed(2)} ₽`
+            description: `Заявка на пополнение баланса`,
+            date: new Date().toLocaleDateString('ru-RU'),
+            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit, minute: '2-digit' })
         });
         
         document.getElementById('payment-card-number').textContent = maskedCard;
         document.getElementById('payment-amount').textContent = amount.toFixed(2) + ' ₽';
         openModal('paymentModal');
-    }
-    
-    function updateHistory() {
-        const historyContainer = document.getElementById('history-content');
-        if (!historyContainer) return;
-        
-        if (userTransactions.length === 0) {
-            historyContainer.innerHTML = `
-                <div class="text-center" style="padding: 40px 0; color: var(--tg-secondary-text-color);">
-                    <i class="fas fa-star" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
-                    <p>История операций пуста</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '<div class="history-list">';
-        
-        userTransactions.slice(-10).reverse().forEach(transaction => {
-            if (transaction.type === 'stars_purchase') {
-                const totalCost = Math.abs(transaction.total || 0);
-                html += `
-                    <div class="history-item">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                            <div style="font-weight: 600;">Покупка Stars</div>
-                            <div style="font-weight: 600; color: var(--error-color);">-${totalCost.toFixed(2)} ₽</div>
-                        </div>
-                        <div style="color: var(--tg-secondary-text-color); font-size: 12px;">
-                            ${transaction.stars || 0} Stars • ${transaction.date} ${transaction.time}
-                        </div>
-                    </div>
-                `;
-            } else if (transaction.type === 'topup_request') {
-                const amount = transaction.topupAmount || 0;
-                html += `
-                    <div class="history-item">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                            <div style="font-weight: 600;">Заявка на пополнение</div>
-                            <div style="font-weight: 600; color: var(--warning-color);">Ожидает</div>
-                        </div>
-                        <div style="color: var(--tg-secondary-text-color); font-size: 12px;">
-                            ${amount.toFixed(2)} ₽ • ${transaction.date} ${transaction.time}
-                        </div>
-                    </div>
-                `;
-            } else if (transaction.type === 'roulette_spin') {
-                const rublesCost = Math.abs(transaction.amount || 0);
-                html += `
-                    <div class="history-item">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                            <div style="font-weight: 600;">Рулетка</div>
-                            <div style="font-weight: 600; color: var(--error-color);">-${rublesCost.toFixed(2)} ₽</div>
-                        </div>
-                        <div style="color: var(--tg-secondary-text-color); font-size: 12px;">
-                            ${transaction.date} ${transaction.time}
-                        </div>
-                    </div>
-                `;
-            }
-        });
-        
-        html += '</div>';
-        historyContainer.innerHTML = html;
+        updateHistory();
     }
     
     function redirectToPayment() {
@@ -1481,17 +1494,236 @@
         window.open(paymentUrl, '_blank');
         
         closeModal('paymentModal');
-        showNotification('Успешно', 'Заявка создана. Перейдите для оплаты', 'success');
-        setTimeout(() => showSection('main'), 1000);
+        showNotification('Заявка создана', 'Перейдите для оплаты', 'success');
+    }
+    
+    // История операций
+    function updateHistory() {
+        const historyContainer = document.getElementById('history-content');
+        if (!historyContainer) return;
+        
+        if (userTransactions.length === 0) {
+            historyContainer.innerHTML = `
+                <div style="text-align: center; padding: 40px 0; color: var(--tg-secondary-text-color);">
+                    <i class="fas fa-star" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                    <p>История операций пуста</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '<div class="history-list">';
+        
+        userTransactions.slice().reverse().forEach(transaction => {
+            if (transaction.type === 'stars_purchase') {
+                html += `
+                    <div class="history-item">
+                        <div class="history-title">
+                            <i class="fas fa-star"></i>
+                            Покупка Telegram Stars
+                        </div>
+                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
+                        <div class="history-subtitle">${transaction.stars} Stars • ${transaction.total?.toFixed(2)} ₽</div>
+                        <div class="history-amount negative">-${transaction.total?.toFixed(2)} ₽</div>
+                        <div class="history-status status-success">Завершено</div>
+                    </div>
+                `;
+            } else if (transaction.type === 'topup_request') {
+                html += `
+                    <div class="history-item">
+                        <div class="history-title">
+                            <i class="fas fa-credit-card"></i>
+                            Заявка на пополнение
+                        </div>
+                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
+                        <div class="history-subtitle">Карта: ${transaction.maskedCard}</div>
+                        <div class="history-subtitle">Сумма: ${transaction.topupAmount?.toFixed(2)} ₽</div>
+                        <div class="history-status status-pending">Ожидание оплаты</div>
+                    </div>
+                `;
+            } else if (transaction.type === 'roulette_spin') {
+                html += `
+                    <div class="history-item">
+                        <div class="history-title">
+                            <i class="fas fa-dice"></i>
+                            Спин рулетки
+                        </div>
+                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
+                        <div class="history-subtitle">${transaction.stars} Stars</div>
+                        <div class="history-amount negative">-${ROULETTE_COST.toFixed(2)} ₽</div>
+                        <div class="history-status status-success">Завершено</div>
+                    </div>
+                `;
+            } else if (transaction.type === 'roulette_win_nft') {
+                html += `
+                    <div class="history-item">
+                        <div class="history-title">
+                            <i class="fas fa-trophy"></i>
+                            Выигрыш NFT в рулетке
+                        </div>
+                        <div class="history-subtitle">${transaction.date} ${transaction.time}</div>
+                        <div class="history-subtitle">NFT 600 Stars</div>
+                        <div class="history-status status-pending">Ожидает выдачи</div>
+                    </div>
+                `;
+            }
+        });
+        
+        html += '</div>';
+        historyContainer.innerHTML = html;
+    }
+    
+    // Админ панель
+    function showAdminSection(section) {
+        ['stats', 'transactions', 'users'].forEach(s => {
+            document.getElementById(`admin-${s}`)?.classList.add('hidden');
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(s)) {
+                    tab.classList.remove('active');
+                }
+            });
+        });
+        
+        document.getElementById(`admin-${section}`)?.classList.remove('hidden');
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            if (tab.textContent.toLowerCase().includes(section)) {
+                tab.classList.add('active');
+            }
+        });
+        
+        if (section === 'transactions') {
+            loadAdminTransactions('all');
+        } else if (section === 'users') {
+            loadAdminUsers();
+        } else if (section === 'stats') {
+            loadAdminStats();
+        }
+    }
+    
+    function loadAdminStats() {
+        // Демо данные
+        document.getElementById('total-users').textContent = '1';
+        document.getElementById('total-transactions').textContent = userTransactions.length;
+        
+        let totalStars = 0;
+        let totalRevenue = 0;
+        
+        userTransactions.forEach(tx => {
+            if (tx.type === 'stars_purchase') {
+                totalStars += tx.stars || 0;
+                totalRevenue += Math.abs(tx.total || 0);
+            } else if (tx.type === 'roulette_spin') {
+                totalRevenue += ROULETTE_COST;
+            }
+        });
+        
+        document.getElementById('total-stars').textContent = totalStars;
+        document.getElementById('total-revenue').textContent = totalRevenue.toFixed(2) + ' ₽';
+    }
+    
+    function loadAdminTransactions(filter) {
+        const container = document.getElementById('admin-transactions-content');
+        let transactions = [...userTransactions];
+        
+        if (filter === 'stars') {
+            transactions = transactions.filter(tx => tx.type === 'stars_purchase');
+        } else if (filter === 'topup') {
+            transactions = transactions.filter(tx => tx.type === 'topup_request');
+        } else if (filter === 'roulette') {
+            transactions = transactions.filter(tx => tx.type.includes('roulette'));
+        }
+        
+        if (transactions.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px 0; color: var(--tg-secondary-text-color);">Транзакций не найдено</div>';
+            return;
+        }
+        
+        let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+        
+        transactions.slice().reverse().forEach(tx => {
+            html += `
+                <div style="background: var(--tg-card-bg); border: 1px solid var(--tg-border-color); border-radius: var(--radius-md); padding: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <div style="font-weight: 600; font-size: 14px;">${getTransactionType(tx.type)}</div>
+                        <div style="font-weight: 600; color: ${tx.amount < 0 ? 'var(--error-color)' : 'var(--tg-text-color)'};">${tx.amount < 0 ? '-' : '+'}${Math.abs(tx.amount || 0).toFixed(2)} ₽</div>
+                    </div>
+                    <div style="font-size: 12px; color: var(--tg-secondary-text-color);">${tx.date} ${tx.time}</div>
+                    <div style="font-size: 12px; color: var(--tg-secondary-text-color); margin-top: 4px;">${tx.description}</div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+    
+    function loadAdminUsers() {
+        const container = document.getElementById('admin-users-content');
+        container.innerHTML = `
+            <div style="background: var(--tg-card-bg); border: 1px solid var(--tg-border-color); border-radius: var(--radius-md); padding: 16px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 600;">Демо Пользователь</div>
+                        <div style="font-size: 12px; color: var(--tg-secondary-text-color);">@demo_user</div>
+                    </div>
+                    <div style="font-weight: 600;">${userBalance.toFixed(2)} ₽</div>
+                </div>
+                <button class="btn btn-secondary" onclick="editUserBalance('demo_user', 'Демо Пользователь', 'demo_user', ${userBalance})" style="padding: 10px; font-size: 14px;">
+                    <i class="fas fa-edit"></i> Изменить баланс
+                </button>
+            </div>
+        `;
+    }
+    
+    function getTransactionType(type) {
+        const types = {
+            'stars_purchase': 'Покупка Stars',
+            'topup_request': 'Заявка на пополнение',
+            'roulette_spin': 'Спин рулетки',
+            'roulette_win_nft': 'Выигрыш NFT'
+        };
+        return types[type] || type;
+    }
+    
+    function editUserBalance(userId, name, username, balance) {
+        editingUserId = userId;
+        document.getElementById('edit-user-name').textContent = name;
+        document.getElementById('edit-user-username').textContent = username ? '@' + username : '-';
+        document.getElementById('edit-current-balance').textContent = balance.toFixed(2) + ' ₽';
+        document.getElementById('new-balance-input').value = balance.toFixed(2);
+        document.getElementById('balance-change-reason').value = '';
+        openModal('editBalanceModal');
+    }
+    
+    function saveUserBalance() {
+        const newBalance = parseFloat(document.getElementById('new-balance-input').value);
+        const reason = document.getElementById('balance-change-reason').value;
+        
+        if (isNaN(newBalance) || newBalance < 0) {
+            showNotification('Ошибка', 'Введите корректную сумму', 'error');
+            return;
+        }
+        
+        userBalance = newBalance;
+        updateBalance();
+        
+        userTransactions.push({
+            type: 'admin_balance_change',
+            amount: newBalance - userBalance,
+            status: 'completed',
+            description: `Изменение баланса администратором: ${reason}`,
+            date: new Date().toLocaleDateString('ru-RU'),
+            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+        });
+        
+        showNotification('Успех', `Баланс изменен на ${newBalance.toFixed(2)} ₽`, 'success');
+        closeModal('editBalanceModal');
+        updateHistory();
     }
     
     // Инициализация
-    document.addEventListener('DOMContentLoaded', async function() {
-        // Быстрая загрузка
-        setTimeout(() => {
-            document.getElementById('preloader').classList.add('hidden');
-        }, 500);
-        
+    document.addEventListener('DOMContentLoaded', function() {
+        // Инициализация Telegram
         tg.expand();
         
         // Тема
@@ -1499,29 +1731,94 @@
             document.body.classList.add('theme-dark');
         }
         
-        tg.onEvent('themeChanged', () => {
-            if (tg.colorScheme === 'dark') {
-                document.body.classList.add('theme-dark');
-            } else {
-                document.body.classList.remove('theme-dark');
-            }
+        tg.onEvent('themeChanged', function() {
+            document.body.classList.toggle('theme-dark', tg.colorScheme === 'dark');
         });
         
         // Инициализация пользователя
-        await initUser();
+        initUser();
         
         // Показываем главную страницу
         showSection('main');
         
+        // Добавляем админскую навигацию для демо
+        if (true) { // Для демо всегда показываем админку
+            const nav = document.querySelector('.bottom-nav');
+            const adminNav = document.createElement('div');
+            adminNav.className = 'nav-item';
+            adminNav.onclick = () => showSection('admin');
+            adminNav.innerHTML = '<i class="fas fa-user-shield"></i><span>Админ</span>';
+            nav.appendChild(adminNav);
+        }
+        
         // Вибрация при кликах
         if (navigator.vibrate) {
-            document.querySelectorAll('button, .nav-item, .menu-card, .calc-btn').forEach(element => {
-                element.addEventListener('click', function() {
+            document.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button') || 
+                    e.target.closest('.menu-card') || e.target.closest('.nav-item')) {
                     navigator.vibrate(20);
-                });
+                }
             });
         }
     });
+    
+    function initUser() {
+        currentUser = {
+            id: 'demo_user',
+            name: 'Демо Пользователь',
+            telegramId: 123456789,
+            username: 'demo_user'
+        };
+        
+        // Демо данные
+        userBalance = 1000;
+        userTransactions = [
+            {
+                type: 'stars_purchase',
+                amount: -110,
+                stars: 100,
+                cost: 110,
+                commission: 1.65,
+                total: 111.65,
+                status: 'completed',
+                description: 'Покупка 100 Telegram Stars',
+                date: '01.01.2024',
+                time: '12:00'
+            },
+            {
+                type: 'topup_request',
+                amount: 0,
+                topupAmount: 500,
+                cardNumber: '4111111111111111',
+                maskedCard: '**** **** **** 1111',
+                status: 'pending',
+                description: 'Заявка на пополнение баланса',
+                date: '02.01.2024',
+                time: '14:30'
+            },
+            {
+                type: 'roulette_spin',
+                amount: -33,
+                stars: 30,
+                status: 'completed',
+                description: 'Спин рулетки',
+                date: '03.01.2024',
+                time: '16:45'
+            },
+            {
+                type: 'roulette_win_nft',
+                amount: 0,
+                stars: 600,
+                status: 'pending',
+                description: 'Выигрыш NFT в рулетке',
+                date: '03.01.2024',
+                time: '16:45'
+            }
+        ];
+        
+        updateBalance();
+        updateHistory();
+    }
     </script>
 </body>
 </html>
